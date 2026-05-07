@@ -15,5 +15,3 @@ The maiden project is a GPU accelerated 3D rendering engine built with C++ based
 
 ## Development Roadmap
 ### lots of todo here
-
-
