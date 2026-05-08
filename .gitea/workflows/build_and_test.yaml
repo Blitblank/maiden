@@ -25,7 +25,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-artifact
-          path: build/*
+          path: build
 
   test:
     runs-on: debian12
@@ -43,7 +43,8 @@ jobs:
 
       - name: run_unit_tests
         run: |
-          cd build-artifact
+          ls -al
+          cd build
           ctest -T Test
 
       - name: code_coverage
