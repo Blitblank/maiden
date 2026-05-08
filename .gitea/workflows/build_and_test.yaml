@@ -42,9 +42,11 @@ jobs:
           name: build-artifact
           path: build
 
+      - name: Make Executable
+        run: chmod -R +x ./build
+
       - name: run_unit_tests
         run: |
-          ls -al
           cd build
           ctest -T Test
 
