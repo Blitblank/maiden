@@ -1,0 +1,51 @@
+
+name: Build and Test verification
+run-name: ${{ gitea.actor }} 
+on: [push]
+
+jobs:
+  build:
+    runs-on: debian12
+    container:
+      image: git.vxbard.net/homeburger/bard-cpp-builder:1.0
+    steps:
+      - name: clone
+        uses: actions/checkout@v3
+
+      - name: container-setup
+        run: container-setup.sh
+
+      - name: configure
+        run: cmake -S . -B build
+        
+      - name: build
+        run: cmake build --build -j
+
+      - name: upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact
+          path: build/*
+
+  test:
+    runs-on: debian12
+    container:
+      image: git.vxbard.net/homeburger/bard-cpp-builder:1.0
+    needs: build
+    steps:
+      - name: container-setup
+        run: container-setup.sh
+
+      - name: download
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact
+
+      - name: run_unit_tests
+        run: |
+          cd build
+          ctest -T Test
+
+      - name: code_coverage
+        run: gcovr -r .. --filter "../src"
+        
