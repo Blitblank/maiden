@@ -1,6 +1,6 @@
 
 name: Build and Test verification
-run-name: ${{ gitea.actor }}: Build & Test on ${{ gitea.ref_name }} 
+run-name: "${{ gitea.actor }}: Build & Test on ${{ gitea.ref_name }}"
 on: [push]
 
 jobs:
