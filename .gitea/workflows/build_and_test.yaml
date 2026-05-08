@@ -19,7 +19,7 @@ jobs:
         run: cmake -S . -B build
         
       - name: build
-        run: cmake build --build -j
+        run: cmake --build build -j
 
       - name: upload
         uses: actions/upload-artifact@v3
@@ -48,4 +48,3 @@ jobs:
 
       - name: code_coverage
         run: gcovr -r .. --filter "../src"
-        
