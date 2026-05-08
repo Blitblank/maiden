@@ -49,8 +49,4 @@ jobs:
         run: |
           cd build
           ctest -T Test
-
-      - name: code_coverage
-        run: |
-          cd build
           gcovr -r .. --filter "../src"
