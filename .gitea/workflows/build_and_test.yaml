@@ -33,6 +33,9 @@ jobs:
       image: git.vxbard.net/homeburger/bard-cpp-builder:1.0
     needs: build
     steps:
+      - name: clone
+        uses: actions/checkout@v3
+
       - name: container-setup
         run: container-setup.sh
 
@@ -42,11 +45,15 @@ jobs:
           name: build-artifact
           path: build
 
-      - name: Make Executable
+      - name: make_executable
         run: chmod -R +x ./build
 
       - name: run_unit_tests
         run: |
           cd build
           ctest -T Test
-          gcovr -r .. --filter "../src"
+
+      - name: code_coverage
+        run: |
+          cd build
+          gcovr -r .. --filter "../src" 
