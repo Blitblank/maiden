@@ -4,16 +4,20 @@
 #include <iostream>
 #include <cstdint>
 
+#include "Window.hpp"
+
 class App {
 
-    public:
-    App() = default;
+public:
+    App();
     ~App() = default;
 
-    void run();
+    int32_t run();
 
-    private:
+private:
 
-    int32_t foo();
+    Window* window_;
+
+    bool rendering_ = true;
 
 };

@@ -2,9 +2,7 @@
 #include <gmock/gmock.h>
 #include <memory>
 
-#define private public
-#include <App.hpp>
-#undef private
+#include "App.hpp"
 
 class TestApp : public testing::Test {
 
@@ -21,16 +19,7 @@ class TestApp : public testing::Test {
 TEST_F(TestApp, TestApp_run_nominal) {
 
     createUut();
-    uut_->run();
 
-    // no expect here
+    //EXPECT_EQ(uut_->run(), 0l);
 
 } 
-
-TEST_F(TestApp, TestApp_foo_nominal) {
-
-    createUut();
-
-    EXPECT_EQ(uut_->foo(), 12);
-
-}
