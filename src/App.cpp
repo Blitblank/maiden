@@ -5,7 +5,7 @@
 #include <chrono>
 #include <SDL3/SDL_events.h>
 
-App::App(): window_(new Window()) {
+App::App(): window_(new Window()), engine_(new Engine(window_)) {
     // smart pointers might be a good idea
     // since app will be the top level owner we can use unique ptrs for almost everything
 }

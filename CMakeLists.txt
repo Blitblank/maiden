@@ -25,9 +25,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sdl3)
 
+find_package(Vulkan REQUIRED)
+
 # add_subdirectory() to nest CMakeLists
 
 add_executable(maiden
+    src/Engine.cpp
     src/App.cpp
     src/Window.cpp
     src/main.cpp
@@ -37,6 +40,7 @@ add_executable(maiden
 add_executable(maiden_test
     src/App.cpp
     src/Window.cpp
+    src/Engine.cpp
     test/TestApp.cpp
 )
 # i think the strat is to build all of the core app components into a single library
@@ -49,6 +53,7 @@ target_include_directories(maiden PRIVATE
 
 target_link_libraries(maiden PRIVATE
     SDL3::SDL3
+    Vulkan::Vulkan
 )
 
 target_include_directories(maiden_test PRIVATE
@@ -64,6 +69,7 @@ target_link_libraries(maiden_test PRIVATE
     GTest::gmock
     GTest::gmock_main
     SDL3::SDL3
+    Vulkan::Vulkan
 )
 
 include(CTest)

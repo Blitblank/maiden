@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "Window.hpp"
+#include "Engine.hpp"
 
 class App {
 
@@ -17,6 +18,7 @@ public:
 private:
 
     Window* window_;
+    Engine* engine_;
 
     bool rendering_ = true;
 
