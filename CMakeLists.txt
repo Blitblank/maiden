@@ -29,43 +29,47 @@ find_package(Vulkan REQUIRED)
 
 # add_subdirectory() to nest CMakeLists
 
-add_executable(maiden
-    src/Engine.cpp
+add_library(maiden_core STATIC
     src/App.cpp
     src/Window.cpp
-    src/main.cpp
+    src/Engine.cpp
     # include extra source files here
 )
 
+add_executable(maiden
+    src/main.cpp
+)
+
 add_executable(maiden_test
-    src/App.cpp
-    src/Window.cpp
-    src/Engine.cpp
     test/TestApp.cpp
 )
-# i think the strat is to build all of the core app components into a single library
-# and then you link that to the two different executables (real main and test main)
 
-target_include_directories(maiden PRIVATE
+target_include_directories(maiden_core PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${SDL3_SOURCE_DIR}/include" # was having issues with cmake automatically adding these for a lib
+    "$ENV{VULKAN_SDK}/include" # requires sourcing vulkan sdk setup-env.sh
     # add additional include directories here
 )
 
+target_compile_options(maiden_core PRIVATE --coverage)
+target_link_options(maiden_core PRIVATE --coverage)
+target_link_options(maiden PRIVATE --coverage)
+target_link_options(maiden_test PRIVATE --coverage)
+
 target_link_libraries(maiden PRIVATE
+    maiden_core
     SDL3::SDL3
     Vulkan::Vulkan
 )
 
+# test only stuff down here VVV
 target_include_directories(maiden_test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
-# test only stuff down here VVV
-target_compile_options(maiden_test PRIVATE --coverage)
-target_link_options(maiden_test PRIVATE --coverage)
-
 # TODO: add option for disabling tests (like if target == DEBUG then tests on, otherwise tests off)
 target_link_libraries(maiden_test PRIVATE
+    maiden_core
     GTest::gmock
     GTest::gmock_main
     SDL3::SDL3
