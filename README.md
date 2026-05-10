@@ -74,3 +74,4 @@ $ gcovr -r .. --filter "../src"
 
 ## Development Roadmap
 ### lots of todo here
+See CONTRIBUTING.md for design and more specific development plans.
