@@ -19,6 +19,20 @@ Basic outline where I pretty much copy the guide:
  - ... Boring optimization stuff, like mipmaps, multithreading, multisampling
  - it has a section on raytracing :3
 
+ Goals:
+ - loading 3d models
+ - applying textures
+ - simple diffuse lighting
+ - vertex animations
+ - 3d camera and scene
+ - transparency
+
+Future ambitions:
+ - entity component system
+ - shadows
+ - raytracing
+ - rigidbody simulation
+
 ## Supporting App Infrastructure
 Although not crucial to the core rendering functions of the app, features separate from the rendering engine are convenient to have for testing and usability. Components below are less urgent but should be simpler to develop and implement.
 
