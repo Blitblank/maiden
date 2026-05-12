@@ -1,6 +1,9 @@
 
 #pragma once
 
+// resource allocation is initializion my beloved
+#include <vulkan/vulkan_raii.hpp>
+
 #include "Window.hpp"
 
 class Engine {
@@ -17,8 +20,12 @@ public:
 
 private:
 
-    // might get rid of this
-
     Window* window_;
+
+    bool createInstance();
+
+    // Vulkan specific
+    vk::raii::Context context_;
+    vk::raii::Instance instance_ = nullptr;
 
 };

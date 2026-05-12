@@ -70,7 +70,10 @@ $ cd build
 $ gcovr -r .. --filter "../src"
 ```
 
-### app troubleshooting here
+## App Troubleshooting
+Basically these are some tricky situations that I encountered when trying to execute this app throughout this development phase. If you are running on WSL Ubuntu 26.04 like me, then you mightr run into these too, hopefully my steps help fix.
+note: I am running an x86_64 system with an Nvidia GPU so some things may be slightly different if your system doesn't match.
+
 
 ## Development Roadmap
 ### lots of todo here
