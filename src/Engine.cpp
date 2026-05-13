@@ -34,6 +34,8 @@ void Engine::draw() {
 
 bool Engine::createInstance() {
 
+    uint32_t errorCount = 0;
+
     // create the appInfo filled with information about our app
     constexpr vk::ApplicationInfo appInfo { // using the c++ api instead of the c api
         .pApplicationName = "maiden",
@@ -46,25 +48,47 @@ bool Engine::createInstance() {
     // get necessary extensions that our windowing library requires
     uint32_t instanceExtensionsCount = 0;
     char const* const* instanceExtensions{ SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount) };
-    // check if these extensions are available
+
+    // get required validation layers as specified by our app
+    std::vector<const char*> requiredValidationLayers;
+    if(enableValidationLayers) requiredValidationLayers.assign(validationLayers.begin(), validationLayers.end());
+
+    auto validationLayerProperties = context_.enumerateInstanceLayerProperties();
+    auto unsupportedLayer = std::ranges::find_if(requiredValidationLayers, [&validationLayerProperties](const auto& requiredLayer) {
+        return std::ranges::none_of(validationLayerProperties, [requiredLayer](const auto& layerProperty) {
+            return strcmp(layerProperty.layerName, requiredLayer) == 0;
+        });
+    }); // TODO: what black magic even is this
+    if(unsupportedLayer != requiredValidationLayers.end()) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required validation layer not supported: " << *unsupportedLayer << std::endl;
+        errorCount++;
+    }
+
+    // get all available extensions
     auto extensionProperties = context_.enumerateInstanceExtensionProperties();
-    uint32_t errorCount = 0;
+
+    // print if we feel like it
+    std::cout << "Available Vulkan Extensions: " << std::endl;
+    for(const auto& extensionProperty : extensionProperties) {
+        std::cout << "\t" << extensionProperty.extensionName << std::endl;
+    }
+
     for(uint32_t i = 0; i < instanceExtensionsCount; i++) { // for each extension that we require
-	bool found = false;
-	for(const auto& extensionProperty : extensionProperties) { // see if it matches any extensions that are provided
-        if(strcmp(extensionProperty.extensionName, instanceExtensions[i]) == 0) {
-            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
-        } else {
-		    found = true;
-		    break;
+        bool found = false;
+        for(const auto& extensionProperty : extensionProperties) { // see if it matches any extensions that are provided
+            if(strcmp(extensionProperty.extensionName, instanceExtensions[i]) == 0) {
+                std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
+            } else {
+                found = true;
+                break;
+            }
         }
-	}
-	if(!found) {
-	    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
-	    errorCount++;
+	    if(!found) {
+            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
+            errorCount++;
         } else {
-	    // in case you're curious
-            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] SDL3 extension located: " << instanceExtensions[i] << std::endl;
+	        // in case you're curious
+            //std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] SDL3 extension located: " << instanceExtensions[i] << std::endl;
         }
     } // if any weren't then we must exit
     if(errorCount != 0) return false;
@@ -76,10 +100,6 @@ bool Engine::createInstance() {
     };
 
     instance_ = vk::raii::Instance(context_, instanceCreateInfo);
-    if(instance_ != nullptr) {
-        return true;
-    } else {
-        return false;
-    }
+    return (instance_ != nullptr);
 }
 

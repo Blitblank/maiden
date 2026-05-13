@@ -28,4 +28,7 @@ private:
     vk::raii::Context context_;
     vk::raii::Instance instance_ = nullptr;
 
+    static constexpr bool enableValidationLayers = true; // TODO: only true in debug mode
+    const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+
 };
