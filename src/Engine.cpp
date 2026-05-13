@@ -52,12 +52,12 @@ bool Engine::createInstance() {
     for(uint32_t i = 0; i < instanceExtensionsCount; i++) { // for each extension that we require
 	bool found = false;
 	for(const auto& extensionProperty : extensionProperties) { // see if it matches any extensions that are provided
-            if(strcmp(extensionProperty.extensionName, instanceExtensions[i]) == 0) {
-                std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
-            } else {
-		found = true;
-		break;
-            }
+        if(strcmp(extensionProperty.extensionName, instanceExtensions[i]) == 0) {
+            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
+        } else {
+		    found = true;
+		    break;
+        }
 	}
 	if(!found) {
 	    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << instanceExtensions[i] << std::endl;
