@@ -83,10 +83,18 @@ This seems like a WSL specific error and causes real issues with relaying graphi
 $ sudo add-apt-repository ppa:kisak/kisak-mesa
 $ sudo apt-get update && sudo apt upgrade
 ```
+
 Note: this resulted in the following erre "WARNING: dzn is not a conformant Vulkan implementation, testing use only." Running `$ vkcube` showed that this indeed was just a warning.
 
 (for those curious, dzn is a compaitibility layer between DirectX12 and Vulkan for that WSL conformity)
 
+### Could not locate a Nvidia GPU
+```bash
+$ sudo add-apt-repository ppa:kisak/turtle
+$ sudo apt update
+$ sudo apt upgrade
+```
+verify with `$ vulkaninfo --summary` to ensure your GPU is shown.
 
 ## Development Roadmap
 ### lots of todo here
