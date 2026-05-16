@@ -10,10 +10,13 @@ The maiden project is a GPU accelerated 3D rendering engine built with C++ based
 
 ### Clone Repository
 ```bash
-$ git clone https://git.vxbard.net/homeburger/maiden.git
+# ssh recommended for contribution
+$ git clone git@github.com:Blitblank/maiden.git
+# http if you don't like ssh:
+$ git clone https://github.com/Blitblank/maiden.git
 
 # If there's any necessary submodules then:
-$ git clone --recurse-submodules https://git.vxbard.net/homeburger/maiden.git
+$ git clone --recurse-submodules git@github.com:Blitblank/maiden.git
 
 # If you have already cloned the repository and you need its submodules:
 $ git submodule update --init --recursive
