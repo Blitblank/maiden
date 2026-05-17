@@ -33,6 +33,8 @@ add_library(maiden_core STATIC
     src/App.cpp
     src/Window.cpp
     src/Engine.cpp
+    src/Mesh.cpp
+    src/Logger.cpp
     # include extra source files here
 )
 
