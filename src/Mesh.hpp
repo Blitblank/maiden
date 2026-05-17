@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "Logger.hpp"
 
 struct Vertex // Struct the holds the x y and z coordinates for each struct 
 {
@@ -15,11 +16,11 @@ class Mesh
 
     public:
 
-    Mesh() = default; 
+    Mesh(Logger& logger); 
 
     ~Mesh() = default;
 
-    int CountVertices() // Method to return the amount of vertex points
+    int CountVertices(); // Method to return the amount of vertex points
 
     bool add_point(Vertex point); // add a point to a mesh (stored in the vertex vector)
 
@@ -27,12 +28,9 @@ class Mesh
 
     Vertex getvertex(int index);
 
-    //TODO perhaps a method to reset a mesh?   resetmesh()?
-
-
     private:
 
     std::vector<Vertex> vertices; 
     
-
+    Logger& loggerref;
 };
