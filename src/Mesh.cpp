@@ -102,7 +102,7 @@ bool Mesh::CreateTriangle(float offsetamount, Vertex vertex1, Vertex vertex2, Ve
 
 
     message = "Triangle mesh created with a offset of ";
-    message = message + std::to_string(offsetamount) = "\n";
+    message = message + std::to_string(offsetamount) + "\n";
     message = message + getxyz();
     loggerref.log("mesh", Logger::Flag::info, message);
     return true;
