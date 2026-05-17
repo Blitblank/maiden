@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) 
 {
-
+ // Test cases 
     Vertex y;
 
     y.x = 1.2;
@@ -30,15 +30,16 @@ int main(int argc, char** argv)
 
     z.z = 56.2;
 
-    Logger Evan(Logger::Flag::warning, true, true, "/home/evan/log.txt", true, false); // Minimum level is set to warning so no debug or info messages should appear
+    Logger Evan(Logger::Flag::info, true, true, "/home/evan/log.txt", true, false); // Minimum level is set to warning so no debug or info messages should appear
 
     Mesh Evan2(Evan);
+    Mesh Evan3(Evan);
 
-    Evan2.add_point(y);
+    Evan2.CreateTriangle(3.4,x,y,z);
 
-    Evan2.add_point(z);
+    Evan3.CreateTriangle(4235.53,x,y,z);
 
-    Evan2.add_point(x);
+
 
     // create app and run
 

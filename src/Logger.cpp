@@ -58,33 +58,33 @@
             switch (flag)
             {
             case Flag::debug:
-                level = "debug";
+                level = "DEBUG";
                 break;
 
             case Flag::info:
-                level = "info";
+                level = "INFO";
                 break;
 
             case Flag::warning:
-                level = "warning";
+                level = "WARNING";
             break;
 
             case Flag::error:
-                level = "error";
+                level = "ERROR";
             break;
             
             default:
-                level = "Unknown";
+                level = "UNKNOWN";
             break;
             }
 
             finalmessage = finalmessage + "[" + level + "] "; 
 
-            finalmessage = finalmessage + message; 
+            finalmessage = finalmessage + message + " "; 
 
             if (additionaldetails)
                 {
-                    finalmessage = finalmessage + " " + "[Line " + std::to_string(Source.line()) + "]"  + "["  +  Source.function_name() + "]";
+                    finalmessage = finalmessage  + "[Function: " + Source.function_name() + "]"  +" " + "[Line: "  +  std::to_string(Source.line()) + "]" + " " + "[File: "  +  Source.file_name() + "]";
                 }
    
             if (StandardOutput)
