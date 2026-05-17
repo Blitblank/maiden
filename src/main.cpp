@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 
     z.z = 56.2;
 
-    Logger Evan(Logger::Flag::info, true, true, "/home/evan/log.txt", true, false); // Minimum level is set to warning so no debug or info messages should appear
+    Logger Evan(Logger::Flag::info, true, true, "YOUR FILE PATH HERE", true, false); // Minimum level is set to warning so no debug or info messages should appear
 
     Mesh Evan2(Evan);
     Mesh Evan3(Evan);
