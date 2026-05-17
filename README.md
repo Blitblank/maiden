@@ -10,10 +10,13 @@ The maiden project is a GPU accelerated 3D rendering engine built with C++ based
 
 ### Clone Repository
 ```bash
-$ git clone https://git.vxbard.net/homeburger/maiden.git
+# ssh recommended for contribution
+$ git clone git@github.com:Blitblank/maiden.git
+# http if you don't like ssh:
+$ git clone https://github.com/Blitblank/maiden.git
 
 # If there's any necessary submodules then:
-$ git clone --recurse-submodules https://git.vxbard.net/homeburger/maiden.git
+$ git clone --recurse-submodules git@github.com:Blitblank/maiden.git
 
 # If you have already cloned the repository and you need its submodules:
 $ git submodule update --init --recursive
@@ -70,7 +73,20 @@ $ cd build
 $ gcovr -r .. --filter "../src"
 ```
 
-### app troubleshooting here
+## App Troubleshooting
+Basically these are some tricky situations that I encountered when trying to execute this app throughout this development phase. If you are running on WSL Ubuntu 26.04 like me, then you mightr run into these too, hopefully my steps help fix.
+note: I am running an x86_64 system with an Nvidia GPU so some things may be slightly different if your system doesn't match.
+
+### [WARN: COPY MODE]
+This seems like a WSL specific error and causes real issues with relaying graphics from linux to windows. I fixed this by installing new mesa drivers as reccommended by https://github.com/microsoft/wslg/discussions/312:
+```bash
+$ sudo add-apt-repository ppa:kisak/kisak-mesa
+$ sudo apt-get update && sudo apt upgrade
+```
+Note: this resulted in the following erre "WARNING: dzn is not a conformant Vulkan implementation, testing use only." Running `$ vkcube` showed that this indeed was just a warning.
+
+(for those curious, dzn is a compaitibility layer between DirectX12 and Vulkan for that WSL conformity)
+
 
 ## Development Roadmap
 ### lots of todo here
