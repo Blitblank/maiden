@@ -19,7 +19,7 @@ Window::~Window() {
 int Window::init() {
 
     // TODO: config service for controlling window parameters
-    sdlWindow_ = SDL_CreateWindow("Ouros: Vulkan", 1280u, 720u, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
+    sdlWindow_ = SDL_CreateWindow("Maiden", 1280u, 720u, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     if(sdlWindow_ != nullptr) {
         rendering_ = true;
