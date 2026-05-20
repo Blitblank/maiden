@@ -20,5 +20,8 @@ class Device {
 
     vk::raii::Instance* instance_ = nullptr;
     vk::raii::PhysicalDevice physicalDevice_ = nullptr;
+
+    // required extensions for the physical device
+    std::vector<const char*> requiredDeviceExtensions_ = { vk::KHRSwapchainExtensionName };
     
 };
