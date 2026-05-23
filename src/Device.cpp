@@ -104,3 +104,52 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
 
     return score;
 }
+
+bool Device::createLogicalDevice() {
+
+    if(physicalDevice_ == nullptr) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create logical device without a valid physical device." << std::endl;
+        return false;
+    }
+
+    // specify queue family requirements
+    std::vector<vk::QueueFamilyProperties> queueFamilyProperties = physicalDevice_.getQueueFamilyProperties();
+    auto graphicsQueueFamilyProperty = std::ranges::find_if(queueFamilyProperties, [](auto const &qfp) { return (qfp.queueFlags & vk::QueueFlagBits::eGraphics) != static_cast<vk::QueueFlags>(0); });
+    auto graphicsIndex = static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), graphicsQueueFamilyProperty));
+    float queuePriority = 1.0f;
+    vk::DeviceQueueCreateInfo deviceQueueCreateInfo {
+        .queueFamilyIndex = graphicsIndex,
+        .queueCount = 1,
+        .pQueuePriorities = &queuePriority
+    };
+
+    // specify device feature requirements
+    vk::PhysicalDeviceVulkan13Features deviceFeatures = { .dynamicRendering = true };
+    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT deviceStateFeatures = { . extendedDynamicState = true };
+    vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> featureChain = {
+        {}, // empty for now
+        deviceFeatures,
+        deviceStateFeatures
+    };
+
+    // create logical device
+    vk::DeviceCreateInfo deviceCreateInfo {
+        .pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>(),
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &deviceQueueCreateInfo,
+        .enabledExtensionCount = static_cast<uint32_t>(requiredDeviceExtensions_.size()),
+        .ppEnabledExtensionNames = requiredDeviceExtensions_.data()
+    };
+    logicalDevice_ = vk::raii::Device(physicalDevice_, deviceCreateInfo);
+
+    // initialize the graphics queue
+    graphicsQueue_ = vk::raii::Queue(logicalDevice_, graphicsIndex, 0);
+
+    if(logicalDevice_ != nullptr) {
+        return true;
+    } else {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not create a valid logical device." << std::endl;
+        return false;
+    }
+
+}

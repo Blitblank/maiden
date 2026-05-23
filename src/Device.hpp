@@ -13,6 +13,9 @@ class Device {
     // assigns a capable gpu vkdevice to physicalDevice 
     bool selectPhysicalDevice();
 
+    // initializes the logical device
+    bool createLogicalDevice();
+
     private:
 
     // gives a device a score to attempt to select the most capable device
@@ -20,6 +23,8 @@ class Device {
 
     vk::raii::Instance* instance_ = nullptr;
     vk::raii::PhysicalDevice physicalDevice_ = nullptr;
+    vk::raii::Device logicalDevice_ = nullptr;
+    vk::raii::Queue graphicsQueue_ = nullptr;
 
     // required extensions for the physical device
     std::vector<const char*> requiredDeviceExtensions_ = { vk::KHRSwapchainExtensionName };

@@ -23,8 +23,9 @@ void Engine::init() {
 
     // device selection and setup
     Device device(&instance_);
-    device.selectPhysicalDevice();
-    
+    (void)device.selectPhysicalDevice();
+    (void)device.createLogicalDevice();
+
     // next steps:
     // queue creation
     // vulkan memory allocator
