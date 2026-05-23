@@ -33,6 +33,7 @@ add_library(maiden_core STATIC
     src/App.cpp
     src/Window.cpp
     src/Engine.cpp
+    src/Device.cpp
     # include extra source files here
 )
 
