@@ -22,7 +22,7 @@ void Engine::init() {
     }
 
     // device selection and setup
-    Device device(&instance_);
+    Device device(&instance_, window_);
     (void)device.selectPhysicalDevice();
     (void)device.createLogicalDevice();
 

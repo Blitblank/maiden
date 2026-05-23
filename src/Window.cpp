@@ -2,6 +2,7 @@
 #include "Window.hpp"
 
 #include <SDL3/SDL_events.h>
+#include <iostream>
 
 Window::Window() {
 
@@ -41,5 +42,28 @@ void Window::handleEvent(SDL_Event& event) {
         rendering_ = false;
     } else if(event.type == SDL_EVENT_WINDOW_RESTORED) {
         rendering_ = true;
+    }
+}
+
+bool Window::createSurface(vk::raii::SurfaceKHR* surface) {
+
+    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] createSurface()" << std::endl;
+
+#ifdef __WIN32
+    vk::Win32SurfaceCreateInfoKHR createInfo {
+        .hinstance = GetModuleHandle(nullptr),
+        .hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow_), "SDL.window.win32.hwnd", nullptr);
+    }
+    surface = &instance_.createWin32SurfaceKHR(createInfo);
+#else // __WIN32
+
+#endif // __WIN32
+
+    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] attempted to createSurface" << std::endl;
+    if(surface != nullptr) {
+        return true;
+    } else {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: unable to create window surface." << std::endl;
+        return false;
     }
 }

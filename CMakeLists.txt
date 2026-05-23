@@ -34,6 +34,8 @@ add_library(maiden_core STATIC
     src/Window.cpp
     src/Engine.cpp
     src/Device.cpp
+    src/Pipeline.cpp
+    src/Swapchain.cpp
     # include extra source files here
 )
 
