@@ -45,18 +45,25 @@ void Window::handleEvent(SDL_Event& event) {
     }
 }
 
-bool Window::createSurface(vk::raii::SurfaceKHR* surface) {
+bool Window::createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* surface) {
 
-    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] createSurface()" << std::endl;
+    if(instance == nullptr) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create surface with a null Vulkan instance." << std::endl;
+        return false;
+    }
 
 #ifdef __WIN32
     vk::Win32SurfaceCreateInfoKHR createInfo {
         .hinstance = GetModuleHandle(nullptr),
         .hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow_), "SDL.window.win32.hwnd", nullptr);
     }
-    surface = &instance_.createWin32SurfaceKHR(createInfo);
-#else // __WIN32
-
+    surface = instance->createWin32SurfaceKHR(createInfo);
+#else
+    // this is so unbelievably ugly im so sorry
+    // its just sdl3 uses the c vulkan api and the app uses the c++ api
+    VkSurfaceKHR cSurface;
+    (void)SDL_Vulkan_CreateSurface(sdlWindow_, static_cast<VkInstance>(**instance), nullptr, &cSurface);
+    *surface = vk::raii::SurfaceKHR(*instance, cSurface);
 #endif // __WIN32
 
     std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] attempted to createSurface" << std::endl;

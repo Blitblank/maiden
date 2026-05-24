@@ -129,13 +129,14 @@ bool Device::createLogicalDevice() {
             break;
         }
     }
-    if(queueIndex == -1) {
+    if(queueIndex <= -1) {
         std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not locate valid graphics queues." << std::endl;
+        return false;
     }
 
     float queuePriority = 0.5f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfo {
-        .queueFamilyIndex = queueIndex,
+        .queueFamilyIndex = static_cast<uint32_t>(queueIndex),
         .queueCount = 1,
         .pQueuePriorities = &queuePriority
     };
@@ -173,6 +174,6 @@ bool Device::createLogicalDevice() {
 
 void Device::createSurface() {
 
-    (void)window_->createSurface(&surface_);
+    (void)window_->createSurface(instance_, &surface_);
 
 }
