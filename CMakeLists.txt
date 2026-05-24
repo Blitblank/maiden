@@ -35,6 +35,7 @@ add_library(maiden_core STATIC
     src/Engine.cpp
     src/Mesh.cpp
     src/Logger.cpp
+    src/PPS.cpp
     # include extra source files here
 )
 

@@ -63,7 +63,6 @@ std::string Mesh::getxyz()  // Helper function that returns vertex points in str
     int counter = 0;
     for (Vertex vertex : vertices)
     {
-    
     message = message + "Vertex " + std::to_string(counter) + " - ";
     message = message + "[";
     message = message + std::to_string(vertex.x);
@@ -102,7 +101,7 @@ bool Mesh::CreateTriangle(float offsetamount, Vertex vertex1, Vertex vertex2, Ve
 
 
     message = "Triangle mesh created with a offset of ";
-    message = message + std::to_string(offsetamount) = "\n";
+    message = message + std::to_string(offsetamount) + "\n";
     message = message + getxyz();
     loggerref.log("mesh", Logger::Flag::info, message);
     return true;

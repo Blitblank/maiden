@@ -2,6 +2,7 @@
 #include "App.hpp"
 #include "Logger.hpp"
 #include "Mesh.hpp"
+#include "Pps.hpp"
 
 int main(int argc, char** argv) 
 {
@@ -34,11 +35,25 @@ int main(int argc, char** argv)
 
     Mesh Evan2(Evan);
     Mesh Evan3(Evan);
+    PPS Evan4(Evan);
 
     Evan2.CreateTriangle(3.4,x,y,z);
 
     Evan3.CreateTriangle(4235.53,x,y,z);
 
+    Evan4.getmemoryusage();
+
+    Evan4.getfps();
+
+    Evan4.getframetime();
+
+    Evan4.getcpuload();
+
+    Evan4.getgpuload();
+
+    Evan4.getmemoryusage();
+
+    Evan4.getthreadcount();
 
 
     // create app and run
