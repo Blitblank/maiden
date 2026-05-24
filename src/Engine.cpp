@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "Device.hpp"
+
 Engine::Engine(Window* window): window_(window) {
 
     // cleans up this constructor 
@@ -19,8 +21,12 @@ void Engine::init() {
         std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error creating Vulkan instance." << std::endl;
     }
 
-    // next steps:
     // device selection and setup
+    Device device(&instance_);
+    (void)device.selectPhysicalDevice();
+    (void)device.createLogicalDevice();
+
+    // next steps:
     // queue creation
     // vulkan memory allocator
     // create vulkan surface
