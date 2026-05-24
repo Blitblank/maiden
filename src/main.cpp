@@ -31,15 +31,15 @@ int main(int argc, char** argv)
 
     z.z = 56.2;
 
-    Logger Evan(Logger::Flag::info, true, true, "YOUR FILE PATH HERE", true, true); // Minimum level is set to warning so no debug or info messages should appear
+    Logger Evan(Logger::Flag::debug, true, true, "YOUR FILE PATH HERE", true, true); // Minimum level is set to warning so no debug or info messages should appear
 
     Mesh Evan2(Evan);
     Mesh Evan3(Evan);
     PPS Evan4(Evan);
 
-    Evan2.CreateTriangle(3.4,x,y,z);
+    Evan2.CreateTriangle(1,2,3);
 
-    Evan3.CreateTriangle(4235.53,x,y,z);
+    Evan3.CreateTriangle(3,4,5);
 
     Evan4.getmemoryusage();
 
