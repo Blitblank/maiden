@@ -43,9 +43,15 @@
 
             if (time)
                 {
+                    // https://en.cppreference.com/cpp/chrono/system_clock/now
 
+                    const auto now = std::chrono::system_clock::now();
+                    const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
 
-                    finalmessage = finalmessage + "[" +  "Not Implemented" + "] "; 
+                    std::string finaltime = std::ctime(&t_c);
+                    finaltime.pop_back();
+
+                    finalmessage = finalmessage + "[" +  finaltime + "] "; 
 
                 }
 
