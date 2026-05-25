@@ -58,19 +58,22 @@ bool Window::createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* s
         .hwnd = (HWND)SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWindow_), "SDL.window.win32.hwnd", nullptr);
     }
     surface = instance->createWin32SurfaceKHR(createInfo);
-#else
-    // this is so unbelievably ugly im so sorry
+#else // linux (this technically works on windows too but vulkan gives us an explicit method for WIN32)
     // its just sdl3 uses the c vulkan api and the app uses the c++ api
     VkSurfaceKHR cSurface;
     (void)SDL_Vulkan_CreateSurface(sdlWindow_, static_cast<VkInstance>(**instance), nullptr, &cSurface);
     *surface = vk::raii::SurfaceKHR(*instance, cSurface);
 #endif // __WIN32
 
-    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] attempted to createSurface" << std::endl;
     if(surface != nullptr) {
         return true;
     } else {
         std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: unable to create window surface." << std::endl;
         return false;
     }
+}
+
+bool Window::getExtent(int32_t* width, int32_t* height) {
+    SDL_GetWindowSizeInPixels(sdlWindow_, width, height);
+    return true;
 }

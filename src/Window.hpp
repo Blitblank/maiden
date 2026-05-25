@@ -19,6 +19,7 @@ public:
     bool rendering() { return rendering_; }
     bool open() { return open_; }
     bool createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* surface);
+    bool getExtent(int32_t* width, int32_t* height);
 
 private:
 

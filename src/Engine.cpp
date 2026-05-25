@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Device.hpp"
+#include "Swapchain.hpp"
 
 Engine::Engine(Window* window): window_(window) {
 
@@ -23,14 +24,10 @@ void Engine::init() {
 
     // device selection and setup
     Device device(&instance_, window_);
-    (void)device.selectPhysicalDevice();
-    (void)device.createLogicalDevice();
 
-    // next steps:
-    // queue creation
-    // vulkan memory allocator
-    // create vulkan surface
-    // attach surface to window
+    // render pipeline
+    Swapchain swapchain(&device);
+    // Pipeline pipeline(&device, &swapchain);
 
 }
 
@@ -132,7 +129,7 @@ std::vector<const char*> Engine::getRequiredInstanceExtensions() {
 
     // get extensions that our windowing library requires
     uint32_t sdlExtensionsCount = 0;
-    const char* const* sdlExtensions{ SDL_Vulkan_GetInstanceExtensions(&sdlExtensionsCount) };
+    const char* const* sdlExtensions{ SDL_Vulkan_GetInstanceExtensions(&sdlExtensionsCount) }; // TODO: get this from window so all sdl3 is encapsulated there
     // what in the world is this kind of pointer btw
 
     std::vector<const char*> requiredExtensions(sdlExtensions, sdlExtensions + static_cast<size_t>(sdlExtensionsCount));

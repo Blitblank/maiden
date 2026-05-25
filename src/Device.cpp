@@ -5,8 +5,9 @@
 
 Device::Device(vk::raii::Instance* instance, Window* window): instance_(instance), window_(window) {
 
-    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Device constructor" << std::endl;
+    selectPhysicalDevice();
     createSurface();
+    createLogicalDevice();
 
 }
 
@@ -164,6 +165,7 @@ bool Device::createLogicalDevice() {
     graphicsQueue_ = vk::raii::Queue(logicalDevice_, queueIndex, 0);
 
     if(logicalDevice_ != nullptr) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Info: Created logcal device" << std::endl;
         return true;
     } else {
         std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not create a valid logical device." << std::endl;
@@ -176,4 +178,22 @@ void Device::createSurface() {
 
     (void)window_->createSurface(instance_, &surface_);
 
+    if(surface_ == nullptr) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error creating surface!" << std::endl;
+        return;
+    }
+
+    if(physicalDevice_ == nullptr) {
+        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create surface without a physical device!" << std::endl;
+        return;
+    }
+
+    auto surfaceCapabilities = physicalDevice_.getSurfaceCapabilitiesKHR(*surface_);
+    std::vector<vk::SurfaceFormatKHR> availableFormats = physicalDevice_.getSurfaceFormatsKHR(*surface_);
+    std::vector<vk::PresentModeKHR> availablePresentModes = physicalDevice_.getSurfacePresentModesKHR(*surface_);
+
+}
+
+bool Device::getExtent(int32_t* width, int32_t* height) {
+    return window_->getExtent(width, height);
 }
