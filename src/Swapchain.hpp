@@ -16,7 +16,8 @@ class Swapchain {
     private:
 
     vk::raii::SwapchainKHR vkSwapchain_ = nullptr;
-    std::vector<vk::Image> swapchainImages_;
+    std::vector<vk::Image> images_;
+    std::vector<vk::raii::ImageView> imageViews_; 
 
     Device* device_ = nullptr;
     vk::SurfaceFormatKHR surfaceFormat_;
@@ -29,4 +30,6 @@ class Swapchain {
     uint32_t chooseMinImageCount(vk::SurfaceCapabilitiesKHR const& capabilities);
 
     bool createSwapchain();
+    bool createImageViews();
+
 };

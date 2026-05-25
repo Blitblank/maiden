@@ -6,6 +6,7 @@
 Swapchain::Swapchain(Device* device) : device_(device) {
 
     (void)createSwapchain();
+    (void)createImageViews();
 
 }
 
@@ -44,7 +45,7 @@ bool Swapchain::createSwapchain() {
     swapchainCreateInfo.oldSwapchain = nullptr;
 
     vkSwapchain_ = vk::raii::SwapchainKHR(*logicalDevice, swapchainCreateInfo);
-    swapchainImages_ = vkSwapchain_.getImages();
+    images_ = vkSwapchain_.getImages();
 
     if(vkSwapchain_ == nullptr) {
         std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not create the Vulkan Swapchain!" << std::endl;
@@ -117,4 +118,25 @@ uint32_t Swapchain::chooseMinImageCount(vk::SurfaceCapabilitiesKHR const& capabi
     } else {
         return minImageCount;
     }
+}
+
+bool Swapchain::createImageViews() {
+
+    if(!imageViews_.empty()) {
+        return false;
+    }
+
+    vk::ImageViewCreateInfo imageViewCreateInfo {
+        .viewType = vk::ImageViewType::e2D,
+        .format = surfaceFormat_.format,
+        .components = { vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity }, // default rgba
+        .subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}, // aspect mask, baseMipLevel, levelCount, baseArrayLayer, layerCount
+    };
+
+    for(vk::Image &image : images_) {
+        imageViewCreateInfo.image = image;
+        imageViews_.emplace_back(*(device_->logicalDevice()), imageViewCreateInfo);
+    }
+
+    return true;
 }
