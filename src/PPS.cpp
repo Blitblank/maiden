@@ -26,6 +26,17 @@ void  PPS::getframetime()
 
 }
 
+void  PPS::getsummary()
+{
+
+    getfps();
+    getframetime();
+    getcpuload();
+    getgpuload();
+    getthreadcount();
+
+}
+
 void PPS::getcpuload() 
 {
     double cpuload = 0.0;

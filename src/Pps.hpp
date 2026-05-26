@@ -46,9 +46,11 @@ void  getcpuload();
 
 void  getgpuload();
 
-void getmemoryusage();
+void  getmemoryusage();
 
 void  getthreadcount();
+
+void  getsummary();
 
 std::string  returnhardwareinfo();
 
