@@ -56,6 +56,8 @@ add_library(maiden_core STATIC
     src/Logger.cpp
     src/Device.cpp
     src/ConfigService.cpp
+    src/Pipeline.cpp
+    src/Swapchain.cpp
     # include extra source files here
 )
 
