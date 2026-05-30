@@ -6,6 +6,7 @@
 
 #include "Window.hpp"
 #include "Engine.hpp"
+#include "Logger.hpp"
 
 class App {
 
@@ -19,6 +20,7 @@ private:
 
     Window* window_;
     Engine* engine_;
+    Logger* engineLogger_;
 
     bool rendering_ = true;
 
