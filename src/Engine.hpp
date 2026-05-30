@@ -10,7 +10,7 @@ class Engine {
 
 public:
 
-    Engine(Window* window);
+    Engine(Window* window, Logger* logger);
     ~Engine() = default;
 
     // initializes and sets up the vulkan instance. outside of constructor to allow control of order the order of initialization
@@ -36,6 +36,7 @@ private:
                                                           const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                           void* pUserData);
 
+    Logger* logger_;
     Window* window_;
 
     // Vulkan specific instance members

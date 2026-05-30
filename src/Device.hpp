@@ -4,12 +4,13 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "Window.hpp"
+#include "Logger.hpp"
 
 class Device { 
 
     public:
 
-    Device(vk::raii::Instance* instance, Window* window);
+    Device(vk::raii::Instance* instance, Window* window, Logger* logger);
     ~Device();
 
     // helper to get the surface extent from the window
@@ -42,6 +43,7 @@ class Device {
 
     // ptrs to other engine objects
     Window* window_ = nullptr;
+    Logger* logger_ = nullptr;
 
     // required extensions for the physical device
     std::vector<const char*> requiredDeviceExtensions_ = { vk::KHRSwapchainExtensionName };
