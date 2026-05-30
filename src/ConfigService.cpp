@@ -1,5 +1,6 @@
 #include "ConfigService.hpp"
 
+#include <iostream>
 #include <exception>
 
 bool ConfigService::loadFromFile(const std::string& filePath) {
@@ -39,7 +40,6 @@ bool ConfigService::loadFromString(const std::string& configText) {
 std::optional<LoggerConfig> ConfigService::getLoggerConfig(const std::string& id) const {
     try {
         const libconfig::Setting& loggers = config_.lookup("Loggers");
-
         for (int index = 0; index < loggers.getLength(); ++index) {
             const libconfig::Setting& loggerSetting = loggers[index];
 
@@ -50,7 +50,8 @@ std::optional<LoggerConfig> ConfigService::getLoggerConfig(const std::string& id
 
             return parseLoggerConfig(loggerSetting);
         }
-    } catch (const libconfig::SettingException&) {
+    } catch (const libconfig::SettingException& ex) {
+        std::cout << "libconfig setting exception: " << ex.what() << std::endl; 
         return std::nullopt;
     }
 

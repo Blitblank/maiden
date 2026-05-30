@@ -6,18 +6,26 @@
 #include <fstream>
 
 
-    Logger::Logger(Flag MinimumFlag, bool SOlog, bool FileLog, std::string Filepath, bool Additionaldetails, bool Time)
-
+    Logger::Logger(ConfigService* config, const std::string& loggerId)
         {
-            minimumFlag = MinimumFlag;
-            StandardOutput = SOlog; // Standard output
-            FileOutput = FileLog; 
-            additionaldetails = Additionaldetails;
-            time = Time;
+            // TODO: parse strings of config to the enums
+            minimumFlag = Flag::debug;
+
+            auto loggerConfigurationRaw = config->getLoggerConfig(loggerId);
+            if(!loggerConfigurationRaw) {
+                std::cout << "Failed to get logger configuration fom config service" << std::endl;
+                return;
+            }
+            LoggerConfig loggerConfiguration = loggerConfigurationRaw.value();
+
+            StandardOutput = loggerConfiguration.coutEnabled;
+            FileOutput = loggerConfiguration.fileEnabled;
+            additionaldetails = loggerConfiguration.showSourceTrace;
+            time = loggerConfiguration.showTime;
 
             if (FileOutput)
             {
-                outfile.open(Filepath);
+                outfile.open(loggerConfiguration.filePath);
             }
 
             std::cout << "Logger initialized " << std::endl;
@@ -43,10 +51,7 @@
 
             if (time)
                 {
-
-
                     finalmessage = finalmessage + "[" +  "Not Implemented" + "] "; 
-
                 }
 
         
