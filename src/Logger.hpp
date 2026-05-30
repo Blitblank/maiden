@@ -15,20 +15,19 @@
 
 // This is a monolithic logger so only one logger class will exist 
 
+enum LogFlag{ Debug, Info, Warning, Error, Count };
+static constexpr const char* LogFlagStrings[] = { "Debug", "Info", "Warning", "Error" };
+
 class Logger 
-
-
 {
     
     public:
-
-        enum class Flag{debug, info, warning, error}; // 0 1 2 3
 
         ~Logger();
 
         Logger(ConfigService* config, const std::string& loggerId);
 
-        void log(std::string component, Flag flag, std::string message, std::source_location Source = std::source_location::current()); // Using the <source_location> 
+        void log(std::string component, LogFlag flag, std::string message, std::source_location Source = std::source_location::current()); // Using the <source_location> 
 
 
     private: 
@@ -37,7 +36,7 @@ class Logger
 
         bool FileOutput;
 
-        Flag minimumFlag;
+        std::vector<LogFlag> activeFlags;
 
         bool additionaldetails;
 

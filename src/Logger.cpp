@@ -8,8 +8,6 @@
 
     Logger::Logger(ConfigService* config, const std::string& loggerId)
         {
-            // TODO: parse strings of config to the enums
-            minimumFlag = Flag::debug;
 
             auto loggerConfigurationRaw = config->getLoggerConfig(loggerId);
             if(!loggerConfigurationRaw) {
@@ -22,6 +20,24 @@
             FileOutput = loggerConfiguration.fileEnabled;
             additionaldetails = loggerConfiguration.showSourceTrace;
             time = loggerConfiguration.showTime;
+            
+            for(std::string& flag : loggerConfiguration.flagsEnabled) {
+                bool found = false;
+                for(const char* validFlag : LogFlagStrings) {
+                    if(flag == std::string(validFlag)) {
+                        found = true;
+                        for(int i = 0; i < LogFlag::Count; i++) {
+                            if(LogFlagStrings[i] == flag) {
+                                activeFlags.emplace_back(static_cast<LogFlag>(i));
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(!found) {
+                    std::cout << "Log flag '" << flag << "in configuration file is not a valid log flag" << std::endl;
+                }
+            }
 
             if (FileOutput)
             {
@@ -39,13 +55,19 @@
             }
         }
 
-    void Logger::log(std::string component, Flag flag, std::string message, std::source_location Source)
+    void Logger::log(std::string component, LogFlag flag, std::string message, std::source_location Source)
 
         {
-            if (!(flag >= minimumFlag)) 
-                {
-                    return;
+
+            // check if flag is in the list of active flags
+            bool culled = true;
+            for(LogFlag& testFlag : activeFlags) {
+                if(flag == testFlag) {
+                    culled = false;
+                    break;
                 }
+            } 
+            if(culled) return;
 
             std::string finalmessage = "";
 
@@ -60,28 +82,7 @@
                 std::string level = "";
 
             // Doing this manually for now depending on if we add more flags I will change this later.
-            switch (flag)
-            {
-            case Flag::debug:
-                level = "DEBUG";
-                break;
-
-            case Flag::info:
-                level = "INFO";
-                break;
-
-            case Flag::warning:
-                level = "WARNING";
-            break;
-
-            case Flag::error:
-                level = "ERROR";
-            break;
-            
-            default:
-                level = "UNKNOWN";
-            break;
-            }
+            level = LogFlagStrings[flag];
 
             finalmessage = finalmessage + "[" + level + "] "; 
 
