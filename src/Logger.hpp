@@ -44,5 +44,7 @@ class Logger
 
         std::ofstream outfile;
 
+        std::string id;
+
 };
 

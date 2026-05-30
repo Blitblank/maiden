@@ -12,14 +12,14 @@ Mesh::Mesh(Logger& logs) : loggerref(logs) // assinging loggeref as the argument
 bool Mesh::add_point(Vertex point)
 {
 vertices.push_back(point);
-loggerref.log("mesh", LogFlag::Info, "Was able to add a vertex.");
+loggerref.log("mesh", LogFlag::Debug, "Was able to add a vertex.");
 return true;
 }
 
 
 std::vector<Vertex> Mesh::getallvertices()
 {
-    loggerref.log("mesh", LogFlag::Info, "Was able to retrun all vertices.");
+    loggerref.log("mesh", LogFlag::Debug, "Was able to retrun all vertices.");
     return vertices;
 }
 
@@ -32,14 +32,14 @@ Vertex Mesh::getvertex(int index)
     {
     if (!(index < 0 || index >= vertices.size())) //check to see if index is out of bounds
     {
-        loggerref.log("mesh", LogFlag::Info, "Was able to find the vertex.");
+        loggerref.log("mesh", LogFlag::Debug, "Was able to find the vertex.");
             return vertices[index]; // returns index 0 by default
 
     }
 
     else
     {
-        loggerref.log("mesh", LogFlag::Warning, "Unable to fetch the correct vertex point.");
+        loggerref.log("mesh", LogFlag::Error, "Unable to fetch the correct vertex point.");
         return vertices[0];// returns index 0 by default
     }  
     }

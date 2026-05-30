@@ -1,9 +1,7 @@
 
 #include "Device.hpp"
 
-#include <iostream>
-
-Device::Device(vk::raii::Instance* instance, Window* window): instance_(instance), window_(window) {
+Device::Device(vk::raii::Instance* instance, Window* window, Logger* logger): instance_(instance), window_(window), logger_(logger) {
 
     selectPhysicalDevice();
     createSurface();
@@ -20,7 +18,7 @@ bool Device::selectPhysicalDevice() {
     std::vector<vk::raii::PhysicalDevice> physicalDevices = instance_->enumeratePhysicalDevices();
 
     if(physicalDevices.empty()) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: no physical devices with Vulkan support found." << std::endl;
+        logger_->log("Device", LogFlag::Error, "No physical devices with Vulkan support found.");
         return false;
     }
 
@@ -34,11 +32,12 @@ bool Device::selectPhysicalDevice() {
         }
     }
     if(maxScore = 0) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: physical devices found, but none capable for this engine." << std::endl;
+        logger_->log("Device", LogFlag::Error, "Physical devices found, but none capable for this engine.");
         return false;
     } else {
         vk::PhysicalDeviceProperties deviceProperties = physicalDevice_.getProperties();
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Physical device selected: " << deviceProperties.deviceName << std::endl;
+        std::string msg = "Physical device selected: " + std::string(deviceProperties.deviceName);
+        logger_->log("Device", LogFlag::Info, msg);
         return true;
     }
 
@@ -49,7 +48,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
     vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
-    std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Physical device found: " << deviceProperties.deviceName << std::endl;
+    std::string msg = "Physical device found: " + std::string(deviceProperties.deviceName);
+    logger_->log("Device", LogFlag::Debug, msg);
 
     uint32_t score = 0;
 
@@ -59,14 +59,16 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
         score += 2;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " is not a discrete device!" << std::endl;
+        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is not a discrete device!";
+        logger_->log("Device", LogFlag::Debug, msg);
     }
 
-    // prefer devices that support vulkan 1.3
+    // prefer devices that support vulkan 1.4
     if(deviceProperties.apiVersion >= vk::ApiVersion14) {
         score++;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " does not support Vulkan 1.3! (" << std::endl;
+        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support Vulkan 1.4!";
+        logger_->log("Device", LogFlag::Debug, msg);
     }
 
     // prefer devices that support graphics queues
@@ -74,7 +76,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(std::ranges::any_of( queueFamilies, []( auto const & qfp ) { return !!( qfp.queueFlags & vk::QueueFlagBits::eGraphics ); } )) {
         score++;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " does not support graphics queue families!" << std::endl;
+        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support graphics queue families!";
+        logger_->log("Device", LogFlag::Debug, msg);
     }
 
     // prefer devices that support all required extensions
@@ -95,7 +98,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(missingExtensions == 0) {
         score++;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " is missing extensions!" << std::endl;
+        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing extensions!";
+        logger_->log("Device", LogFlag::Debug, msg);
     }
 
     // prefer devices that support all required features
@@ -103,7 +107,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering && features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState) {
         score++;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " is missing features!" << std::endl;
+        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing features!";
+        logger_->log("Device", LogFlag::Debug, msg);
     }
 
     return score;
@@ -112,12 +117,12 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
 bool Device::createLogicalDevice() {
 
     if(surface_ == nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create logical device without a valid presentation surface." << std::endl;
+        logger_->log("Device", LogFlag::Error, "Cannot create logical device without a valid presentation surface.");
         return false;
     }
 
     if(physicalDevice_ == nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create logical device without a valid physical device." << std::endl;
+        logger_->log("Device", LogFlag::Error, "Cannot create logical device without a valid physical device.");
         return false;
     }
 
@@ -131,7 +136,7 @@ bool Device::createLogicalDevice() {
         }
     }
     if(queueIndex <= -1) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not locate valid graphics queues." << std::endl;
+        logger_->log("Device", LogFlag::Error, "Could not locate valid graphics queues.");
         return false;
     }
 
@@ -165,10 +170,10 @@ bool Device::createLogicalDevice() {
     graphicsQueue_ = vk::raii::Queue(logicalDevice_, queueIndex, 0);
 
     if(logicalDevice_ != nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Info: Created logcal device" << std::endl;
+        logger_->log("Device", LogFlag::Info, "Created logcal device");
         return true;
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not create a valid logical device." << std::endl;
+        logger_->log("Device", LogFlag::Error, "Could not create a valid logical device.");
         return false;
     }
 
@@ -179,12 +184,12 @@ void Device::createSurface() {
     (void)window_->createSurface(instance_, &surface_);
 
     if(surface_ == nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error creating surface!" << std::endl;
+        logger_->log("Device", LogFlag::Error, "Unable to create surface!");
         return;
     }
 
     if(physicalDevice_ == nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create surface without a physical device!" << std::endl;
+        logger_->log("Device", LogFlag::Error, "Cannot attach surface without a physical device!");
         return;
     }
 

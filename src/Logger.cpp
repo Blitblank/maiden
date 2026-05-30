@@ -3,6 +3,7 @@
 #include <source_location> 
 #include "Logger.hpp"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 
@@ -20,6 +21,7 @@
             FileOutput = loggerConfiguration.fileEnabled;
             additionaldetails = loggerConfiguration.showSourceTrace;
             time = loggerConfiguration.showTime;
+            id = loggerConfiguration.id;
             
             for(std::string& flag : loggerConfiguration.flagsEnabled) {
                 bool found = false;
@@ -35,7 +37,7 @@
                     }
                 }
                 if(!found) {
-                    std::cout << "Log flag '" << flag << "in configuration file is not a valid log flag" << std::endl;
+                    std::cout << "Log flag '" << flag << "' in configuration file is not a valid log flag" << std::endl;
                 }
             }
 
@@ -44,7 +46,7 @@
                 outfile.open(loggerConfiguration.filePath);
             }
 
-            std::cout << "Logger initialized " << std::endl;
+            log("Logger", LogFlag::Info, "Logger initialized.");
         }
     
     Logger::~Logger()
@@ -76,32 +78,31 @@
                     finalmessage = finalmessage + "[" +  "Not Implemented" + "] "; 
                 }
 
-        
-            finalmessage = finalmessage + "[" + component + "] "; // component is the section of the program (For example Mesh or Engine) that is calling the logger
+            std::string componentTrace = "[" + id + ": " + component + "] ";
+            finalmessage += componentTrace; // component is the section of the program (For example Mesh or Engine) that is calling the logger
                     
                 std::string level = "";
 
-            // Doing this manually for now depending on if we add more flags I will change this later.
             level = LogFlagStrings[flag];
 
+            // level.append(7 - level.length(), ' ') pads out the level string with whitespace so every line is aligned the same
+            // it looked weird though
             finalmessage = finalmessage + "[" + level + "] "; 
 
             finalmessage = finalmessage + message + " "; 
 
             if (additionaldetails)
                 {
-                    finalmessage = finalmessage  + "[Function: " + Source.function_name() + "]"  +" " + "[Line: "  +  std::to_string(Source.line()) + "]" + " " + "[File: "  +  Source.file_name() + "]";
+                    finalmessage = finalmessage  + "[Function: " + Source.function_name() + "]" + " " + "[Line: "  +  std::to_string(Source.line()) + "]" + " " + "[File: "  +  Source.file_name() + "]";
                 }
    
             if (StandardOutput)
                 {
-                    std::cout << std::endl;
                     std::cout << finalmessage << std::endl;
                 }
 
             if (FileOutput)
                 {
-                    outfile << std::endl;
                     outfile << finalmessage << std::endl;
                 }
             return;
