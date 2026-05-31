@@ -1,6 +1,23 @@
 
 #include "Pipeline.hpp"
 
-Pipeline::Pipeline(Device* device) : device_(device) {
+#include "ShaderModule.hpp"
 
+#include <array>
+#include <filesystem>
+
+Pipeline::Pipeline(Device* device) : device_(device) {
+    if (device_ == nullptr || device_->logicalDevice() == nullptr ||
+        *(device_->logicalDevice()) == nullptr) {
+        return;
+    }
+
+    const auto shaderPath = std::filesystem::path(MAIDEN_SHADER_DIR) / "triangle.spv";
+    ShaderModule shaderModule(device_->logicalDevice(), shaderPath);
+
+    const std::array shaderStages{
+        shaderModule.createStageInfo(vk::ShaderStageFlagBits::eVertex, "vertMain"),
+        shaderModule.createStageInfo(vk::ShaderStageFlagBits::eFragment, "fragMain"),
+    };
+    (void)shaderStages;
 }
