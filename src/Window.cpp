@@ -48,11 +48,7 @@ void Window::handleEvent(SDL_Event& event) {
 bool Window::createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* surface) {
 
     if(instance == nullptr) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create surface with a null Vulkan instance." << std::endl;
-=======
         logger_->log("Window", LogFlag::Error, "Cannot create surface with a null Vulkan instance.");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return false;
     }
 
@@ -72,11 +68,7 @@ bool Window::createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* s
     if(surface != nullptr) {
         return true;
     } else {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: unable to create window surface." << std::endl;
-=======
         logger_->log("Window", LogFlag::Error, "Unable to create window surface.");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return false;
     }
 }

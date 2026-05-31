@@ -59,12 +59,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
         score += 2;
     } else {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Warning: physical device " << deviceProperties.deviceName << " is not a discrete device!" << std::endl;
-=======
         std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is not a discrete device!";
         logger_->log("Device", LogFlag::Debug, msg);
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
     }
 
     // prefer devices that support vulkan 1.4
@@ -121,11 +117,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
 bool Device::createLogicalDevice() {
 
     if(surface_ == nullptr) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create logical device without a valid presentation surface." << std::endl;
-=======
         logger_->log("Device", LogFlag::Error, "Cannot create logical device without a valid presentation surface.");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return false;
     }
 
@@ -144,11 +136,7 @@ bool Device::createLogicalDevice() {
         }
     }
     if(queueIndex <= -1) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not locate valid graphics queues." << std::endl;
-=======
         logger_->log("Device", LogFlag::Error, "Could not locate valid graphics queues.");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return false;
     }
 
@@ -182,11 +170,7 @@ bool Device::createLogicalDevice() {
     graphicsQueue_ = vk::raii::Queue(logicalDevice_, queueIndex, 0);
 
     if(logicalDevice_ != nullptr) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Info: Created logcal device" << std::endl;
-=======
         logger_->log("Device", LogFlag::Info, "Created logcal device");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return true;
     } else {
         logger_->log("Device", LogFlag::Error, "Could not create a valid logical device.");
@@ -200,20 +184,12 @@ void Device::createSurface() {
     (void)window_->createSurface(instance_, &surface_);
 
     if(surface_ == nullptr) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error creating surface!" << std::endl;
-=======
         logger_->log("Device", LogFlag::Error, "Unable to create surface!");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return;
     }
 
     if(physicalDevice_ == nullptr) {
-<<<<<<< HEAD
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: cannot create surface without a physical device!" << std::endl;
-=======
         logger_->log("Device", LogFlag::Error, "Cannot attach surface without a physical device!");
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
         return;
     }
 

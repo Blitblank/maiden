@@ -22,11 +22,7 @@ void Engine::init() {
     }
 
     // device selection and setup
-<<<<<<< HEAD
-    Device device(&instance_, window_);
-=======
     Device device(&instance_, window_, logger_);
->>>>>>> 01992b54c3fd6f2627cdee9be7f7b2703cd7957d
 
     // render pipeline
     Swapchain swapchain(&device);
