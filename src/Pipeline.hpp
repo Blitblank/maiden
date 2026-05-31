@@ -13,8 +13,12 @@ class Pipeline {
 
     private:
 
+    // a significant portion of nitty-gritty vulkan configuration lies in here
+    bool createPipeline();
+
+    vk::raii::PipelineLayout pipelineLayout_ = nullptr;
+
     Device* device_ = nullptr;
     Logger* logger_ = nullptr;
 
-    // will include shaders eventually
 };
