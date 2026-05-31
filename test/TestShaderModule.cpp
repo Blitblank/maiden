@@ -8,18 +8,20 @@
 #include <stdexcept>
 
 TEST(ShaderModule, LoadsCompiledShaderBytecode) {
-    const auto bytecode = ShaderModule::loadBytecode(MAIDEN_TEST_SHADER_PATH);
+    ShaderModule shaderModule { nullptr, MAIDEN_TEST_SHADER_PATH, nullptr };
+    const auto bytecode = shaderModule.loadBytecode(MAIDEN_TEST_SHADER_PATH);
 
     ASSERT_FALSE(bytecode.empty());
     EXPECT_EQ(bytecode.size() % sizeof(uint32_t), 0u);
 
     uint32_t magic = 0;
     std::memcpy(&magic, bytecode.data(), sizeof(magic));
-    EXPECT_EQ(magic, 0x07230203u);
+    EXPECT_EQ(magic, 0x07230203u); // what
 }
 
 TEST(ShaderModule, ThrowsWhenBytecodeFileIsMissing) {
     const auto missingPath = std::filesystem::temp_directory_path() / "missing-maiden-shader.spv";
 
-    EXPECT_THROW((void)ShaderModule::loadBytecode(missingPath), std::runtime_error);
+    ShaderModule shaderModule { nullptr, MAIDEN_TEST_SHADER_PATH, nullptr };
+    EXPECT_THROW((void)shaderModule.loadBytecode(MAIDEN_TEST_SHADER_PATH);, std::runtime_error);
 }

@@ -14,7 +14,7 @@ class Pipeline {
     private:
 
     Device* device_ = nullptr;
-    Logger* logger_ = nullptr
+    Logger* logger_ = nullptr;
 
     // will include shaders eventually
 };

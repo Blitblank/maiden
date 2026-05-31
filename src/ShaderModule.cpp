@@ -8,7 +8,7 @@ ShaderModule::ShaderModule(vk::raii::Device* logicalDevice,
     : ShaderModule(logicalDevice, loadBytecode(shaderPath), logger) {
 }
 
-ShaderModule::ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode) : logger_(logger) {
+ShaderModule::ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode, Logger* logger) : logger_(logger) {
     if (logicalDevice == nullptr || *logicalDevice == nullptr) {
         logger_->log("ShaderModule", LogFlag::Error, "Cannot create shader module with a null logical device.");
         return;
@@ -55,7 +55,7 @@ vk::PipelineShaderStageCreateInfo ShaderModule::createStageInfo(
     vk::ShaderStageFlagBits stage, const char* entryPoint) const {
     if (shaderModule_ == nullptr) {
         logger_->log("ShaderModule", LogFlag::Error, "Cannot create shader stage info with a null shader module.");
-        return nullptr;
+        return vk::PipelineShaderStageCreateInfo {}; // empty
     }
 
     return vk::PipelineShaderStageCreateInfo{

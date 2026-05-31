@@ -13,7 +13,7 @@ Pipeline::Pipeline(Device* device, Logger* logger) : device_(device), logger_(lo
     }
 
     const auto shaderPath = std::filesystem::path(MAIDEN_SHADER_DIR) / "triangle.spv";
-    ShaderModule shaderModule(device_->logicalDevice(), shaderPath);
+    ShaderModule shaderModule(device_->logicalDevice(), shaderPath, logger_);
 
     const std::array shaderStages{
         shaderModule.createStageInfo(vk::ShaderStageFlagBits::eVertex, "vertMain"),
