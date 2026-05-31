@@ -6,7 +6,7 @@
 #include <array>
 #include <filesystem>
 
-Pipeline::Pipeline(Device* device) : device_(device) {
+Pipeline::Pipeline(Device* device, Logger* logger) : device_(device), logger_(logger) {
     if (device_ == nullptr || device_->logicalDevice() == nullptr ||
         *(device_->logicalDevice()) == nullptr) {
         return;

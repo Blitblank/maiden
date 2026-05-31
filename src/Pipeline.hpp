@@ -8,12 +8,13 @@ class Pipeline {
 
     public:
 
-    Pipeline(Device* device);
+    Pipeline(Device* device, Logger* logger);
     ~Pipeline() = default;
 
     private:
 
     Device* device_ = nullptr;
+    Logger* logger_ = nullptr
 
     // will include shaders eventually
 };

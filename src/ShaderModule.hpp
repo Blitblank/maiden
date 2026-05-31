@@ -8,8 +8,8 @@
 
 class ShaderModule {
 public:
-    ShaderModule(vk::raii::Device* logicalDevice, const std::filesystem::path& shaderPath);
-    ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode);
+    ShaderModule(vk::raii::Device* logicalDevice, const std::filesystem::path& shaderPath, Logger* logger);
+    ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode, Logger* logger);
     ~ShaderModule() = default;
 
     static std::vector<char> loadBytecode(const std::filesystem::path& shaderPath);
@@ -19,7 +19,9 @@ public:
     std::size_t bytecodeSize() const { return bytecodeSize_; }
 
 private:
-    static void validateBytecode(const std::vector<char>& bytecode);
+    bool validateBytecode(const std::vector<char>& bytecode);
+
+    Logger* logger_;
 
     vk::raii::ShaderModule shaderModule_ = nullptr;
     std::size_t bytecodeSize_ = 0;

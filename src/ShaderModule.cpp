@@ -4,16 +4,20 @@
 #include <stdexcept>
 
 ShaderModule::ShaderModule(vk::raii::Device* logicalDevice,
-                           const std::filesystem::path& shaderPath)
-    : ShaderModule(logicalDevice, loadBytecode(shaderPath)) {
+                           const std::filesystem::path& shaderPath, Logger* logger)
+    : ShaderModule(logicalDevice, loadBytecode(shaderPath), logger) {
 }
 
-ShaderModule::ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode) {
+ShaderModule::ShaderModule(vk::raii::Device* logicalDevice, std::vector<char> bytecode) : logger_(logger) {
     if (logicalDevice == nullptr || *logicalDevice == nullptr) {
-        throw std::invalid_argument("Cannot create shader module with a null logical device.");
+        logger_->log("ShaderModule", LogFlag::Error, "Cannot create shader module with a null logical device.");
+        return;
     }
 
-    validateBytecode(bytecode);
+    if(!validateBytecode(bytecode)) {
+        logger_->log("ShaderModule", LogFlag::Error, "Shader module invalid bytecode!");
+        return;
+    }
 
     vk::ShaderModuleCreateInfo createInfo{
         .codeSize = bytecode.size(),
@@ -50,7 +54,8 @@ std::vector<char> ShaderModule::loadBytecode(const std::filesystem::path& shader
 vk::PipelineShaderStageCreateInfo ShaderModule::createStageInfo(
     vk::ShaderStageFlagBits stage, const char* entryPoint) const {
     if (shaderModule_ == nullptr) {
-        throw std::runtime_error("Cannot create shader stage info with a null shader module.");
+        logger_->log("ShaderModule", LogFlag::Error, "Cannot create shader stage info with a null shader module.");
+        return nullptr;
     }
 
     return vk::PipelineShaderStageCreateInfo{
@@ -60,12 +65,14 @@ vk::PipelineShaderStageCreateInfo ShaderModule::createStageInfo(
     };
 }
 
-void ShaderModule::validateBytecode(const std::vector<char>& bytecode) {
+bool ShaderModule::validateBytecode(const std::vector<char>& bytecode) {
     if (bytecode.empty()) {
-        throw std::runtime_error("Shader bytecode cannot be empty.");
+        logger_->log("ShaderModule", LogFlag::Error, "Shader bytecode cannot be empty.");
+        return false;
     }
 
     if (bytecode.size() % sizeof(uint32_t) != 0) {
-        throw std::runtime_error("Shader bytecode size must be a multiple of 4 bytes.");
+        logger_->log("ShaderModule", LogFlag::Error, "Shader bytecode size must be a multiple of 4 bytes.");
     }
+    return true;
 }
