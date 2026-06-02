@@ -18,23 +18,14 @@ void PPS::getfps()
 
     std::string message = "NOT IMPLEMENTED";
 
-<<<<<<< HEAD
-    loggerref.log("PPS", Logger::Flag::info, "NOT IMPLEMENTED");
-=======
  loggerref.log("PPS", LogFlag::Info, "NOT IMPLEMENTED");
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
 
 }
 
 void  PPS::getframetime()
 {
-<<<<<<< HEAD
-    std::string message = "NOT IMPLEMENTED";
-    loggerref.log("PPS", Logger::Flag::info, "The frametime is " +  message + ".");
-=======
      std::string message = "NOT IMPLEMENTED";
    loggerref.log("PPS", LogFlag::Info, "The frametime is " +  message + ".");
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
 
 }
 
@@ -49,7 +40,7 @@ void  PPS::getsummary()
     getcpuload();
     getgpuload();
     message = "CPU load " + cpuload + "%" + " | " + memoryusage  + " | " + gpuload + " | " + threadcount + " |";
-    loggerref.log("PPS", Logger::Flag::info,  message );
+    loggerref.log("PPS", LogFlag::Info,  message );
 
 }
 
@@ -90,32 +81,24 @@ void PPS::getcpuload()
     std::getline(stringstream, ny, ',');
     std::getline(stringstream, idle, ',');  
 
-<<<<<<< HEAD
     us.erase(0,2); // removing spaces
 
     #endif
 
-    loggerref.log("PPS", Logger::Flag::debug, "CPU usage is at " + us + ".");
+    loggerref.log("PPS", LogFlag::Info, "CPU usage is at " + us + ".");
 
     cpuload = us; // storing into private variable to be called later in the summary
 
-=======
-    loggerref.log("PPS", LogFlag::Info, "CPU usage is at " + us + ".");
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
 }
 
 void PPS::getgpuload()
 {
     std::string gpucommand = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader";
     std::string result = executecommand(gpucommand);
-<<<<<<< HEAD
-    loggerref.log("PPS", Logger::Flag::debug, "GPU usage is at " + result);
+   loggerref.log("PPS", LogFlag::Info, "GPU usage is at " + result);
     gpuload = "GPU usage is at " + result;
     gpuload.pop_back(); // remove 
 
-=======
-    loggerref.log("PPS", LogFlag::Info, "GPU usage is at " + result);
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
 }
 
 void PPS::getmemoryusage()
@@ -178,8 +161,7 @@ void PPS::getmemoryusage()
     std::getline(stringstream, output, ','); 
 
 
-<<<<<<< HEAD
-    loggerref.log("PPS", Logger::Flag::info, "RAM Usage " + output + "MB out of " + total + "MB.");
+      loggerref.log("PPS", LogFlag::Info, "RAM Usage " + output + " out of " + total);
 
     output.erase(0,4);
 
@@ -187,9 +169,6 @@ void PPS::getmemoryusage()
 
     memoryusage = "Memory Usage " + output + total;
 
-=======
-    loggerref.log("PPS", LogFlag::Info, "RAM Usage " + output + " out of " + total);
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
     return;
 
     #endif
@@ -235,18 +214,14 @@ void PPS::getthreadcount()
 
 
 
-   loggerref.log("PPS", Logger::Flag::debug, "Total " + header + " " + output );
+       loggerref.log("PPS", LogFlag::Debug, "Total " + header + " " + output );
 
    threadcount = "Total " + header + " " + output;
 
   return;
 
 
-<<<<<<< HEAD
-=======
-    loggerref.log("PPS", LogFlag::Debug, "Total " + header + " " + output );
-    return;
->>>>>>> 106f6c5dab704babdbcbb0105e65244f231a4d53
+
 }
 
 std::string PPS::executecommand(std::string command)
@@ -286,7 +261,7 @@ if (output) // if the command has a output
 FILE* output = popen(command.c_str(), "r"); 
 if (!output) // if the command has no output or has returned a error
 {
-    loggerref.log("PPS", Logger::Flag::error, "Was unable to execute the command " + command);
+    loggerref.log("PPS", LogFlag::Error, "Was unable to execute the command " + command);
     return result; // which is ""
 }
 
@@ -299,7 +274,7 @@ if (output) // if the command has a output
             result = result + line; // append to the final string that is to be returned.
         }
 
-    loggerref.log("PPS", Logger::Flag::debug, "Was able to execute the command " + command);
+    loggerref.log("PPS", LogFlag::Debug, "Was able to execute the command " + command);
 }   
     pclose(output);
   
@@ -462,13 +437,13 @@ std::string PPS::returnhardwareinfo()
 
         output = output + executecommand(gpucommand);
 
-        loggerref.log("PPS", Logger::Flag::info, output);
+        loggerref.log("PPS", LogFlag::Info, output);
 
         return output;
 
         #endif
     }
-*/
+
     loggerref.log("PPS", LogFlag::Warning, "Unable to find the correct GPU information.");
     return defaultstring;
     
