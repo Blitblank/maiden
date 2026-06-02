@@ -44,9 +44,37 @@ else()
     message(FATAL_ERROR "Could not find libconfig++ CMake target")
 endif()
 
+find_program(SLANGC_EXECUTABLE
+    NAMES slangc
+    HINTS "$ENV{VULKAN_SDK}/Bin" "$ENV{VULKAN_SDK}/bin"
+    REQUIRED
+)
+
 find_package(Vulkan REQUIRED)
 
 # add_subdirectory() to nest CMakeLists
+
+set(MAIDEN_SHADER_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/shaders/triangle.slang")
+set(MAIDEN_SHADER_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/shaders")
+set(MAIDEN_SHADER_OUTPUT "${MAIDEN_SHADER_OUTPUT_DIR}/triangle.spv")
+
+add_custom_command(
+    OUTPUT "${MAIDEN_SHADER_OUTPUT}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${MAIDEN_SHADER_OUTPUT_DIR}"
+    COMMAND "${SLANGC_EXECUTABLE}" "${MAIDEN_SHADER_SOURCE}"
+            -target spirv
+            -profile spirv_1_4
+            -emit-spirv-directly
+            -fvk-use-entrypoint-name
+            -entry vertMain
+            -entry fragMain
+            -o "${MAIDEN_SHADER_OUTPUT}"
+    DEPENDS "${MAIDEN_SHADER_SOURCE}"
+    COMMENT "Compiling Slang shaders"
+    VERBATIM
+)
+
+add_custom_target(maiden_shaders DEPENDS "${MAIDEN_SHADER_OUTPUT}")
 
 add_library(maiden_core STATIC
     src/App.cpp
@@ -58,6 +86,7 @@ add_library(maiden_core STATIC
     src/Device.cpp
     src/ConfigService.cpp
     src/Pipeline.cpp
+    src/ShaderModule.cpp
     src/Swapchain.cpp
     # include extra source files here
 )
@@ -69,6 +98,7 @@ add_executable(maiden
 add_executable(maiden_test
     test/TestApp.cpp
     test/TestConfigService.cpp
+    test/TestShaderModule.cpp
 )
 
 target_include_directories(maiden_core PRIVATE
@@ -88,6 +118,7 @@ target_compile_definitions(maiden_core PRIVATE
     VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
     BINARY_DIR="${CMAKE_BINARY_DIR}"    
 )
+target_compile_definitions(maiden_core PUBLIC MAIDEN_SHADER_DIR="${MAIDEN_SHADER_OUTPUT_DIR}")
 
 target_link_libraries(maiden PRIVATE
     maiden_core
@@ -98,11 +129,14 @@ target_link_libraries(maiden PRIVATE
 target_link_libraries(maiden_core PUBLIC
     ${MAIDEN_LIBCONFIGXX_TARGET}
 )
+add_dependencies(maiden maiden_shaders)
 
 # test only stuff down here VVV
 target_include_directories(maiden_test PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
+
+target_compile_definitions(maiden_test PRIVATE MAIDEN_TEST_SHADER_PATH="${MAIDEN_SHADER_OUTPUT}")
 
 # TODO: add option for disabling tests (like if target == DEBUG then tests on, otherwise tests off)
 target_link_libraries(maiden_test PRIVATE
@@ -112,6 +146,8 @@ target_link_libraries(maiden_test PRIVATE
     SDL3::SDL3
     Vulkan::Vulkan
 )
+
+add_dependencies(maiden_test maiden_shaders)
 
 include(CTest)
 enable_testing() # ctest is whatever

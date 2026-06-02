@@ -2,6 +2,7 @@
 #include "Window.hpp"
 
 #include <SDL3/SDL_events.h>
+#include <iostream>
 
 Window::Window(Logger* logger) : logger_(logger) {
 

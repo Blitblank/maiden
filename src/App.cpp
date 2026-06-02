@@ -46,8 +46,8 @@ int32_t App::run() {
             // counter++;
 
         } else {
-             // throttle while the window isn't active
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            // throttle while the window isn't active
+            // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 

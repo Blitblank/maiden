@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-Swapchain::Swapchain(Device* device) : device_(device) {
+Swapchain::Swapchain(Device* device, Logger* logger) : device_(device), logger_(logger) {
 
     (void)createSwapchain();
     (void)createImageViews();

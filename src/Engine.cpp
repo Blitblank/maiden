@@ -5,6 +5,7 @@
 
 #include "Device.hpp"
 #include "Swapchain.hpp"
+#include "Pipeline.hpp"
 
 Engine::Engine(Window* window, Logger* logger): window_(window), logger_(logger) {
 
@@ -25,8 +26,8 @@ void Engine::init() {
     Device device(&instance_, window_, logger_);
 
     // render pipeline
-    Swapchain swapchain(&device);
-    // Pipeline pipeline(&device, &swapchain);
+    Swapchain swapchain(&device, logger_);
+    Pipeline pipeline(&device, &swapchain, logger_);
 
 }
 
