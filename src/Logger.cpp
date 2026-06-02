@@ -6,21 +6,31 @@
 #include <fstream>
 
 
-    Logger::Logger(Flag MinimumFlag, bool SOlog, bool FileLog, std::string Filepath, bool Additionaldetails, bool Time)
+    Logger::Logger(Flag MinimumFlag, bool standardoutputlog, bool FileLog, bool Additionaldetails, bool Time)
 
         {
             minimumFlag = MinimumFlag;
-            StandardOutput = SOlog; // Standard output
+            StandardOutput = standardoutputlog; 
             FileOutput = FileLog; 
             additionaldetails = Additionaldetails;
             time = Time;
 
+
+              const auto now = std::chrono::system_clock::now();
+                    const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
+
+                    std::string finaltime = std::ctime(&t_c);
+
+                    finaltime.pop_back(); // removing the newline
+
+                std::replace(finaltime.begin(),finaltime.end(), ':' , '-'); // filenames cant have dashes
+
             if (FileOutput)
             {
-                outfile.open(Filepath);
+                outfile.open("Log File " + finaltime + ".txt");
             }
 
-            std::cout << "Logger initialized " << std::endl;
+            std::cout << "Logger initialized at " << finaltime << std::endl;
         }
     
     Logger::~Logger()

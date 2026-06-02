@@ -68,4 +68,12 @@ supplementalmetrics metrics;
 
 Logger& loggerref;
 
+// new private variable to store information for the summary.
+std::string cpuload;
+
+std::string memoryusage;
+
+std::string gpuload;
+
+std::string threadcount;
 };

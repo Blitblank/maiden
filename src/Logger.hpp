@@ -24,7 +24,7 @@ class Logger
 
         ~Logger();
 
-        Logger(Flag MinimumFlag, bool SOlog, bool FileLog, std::string Filepath, bool Additionaldetails, bool Time); // SOlog standard output 
+        Logger(Flag MinimumFlag, bool Standardoutputlog, bool FileLog,  bool Additionaldetails, bool Time); 
 
         void log(std::string component, Flag flag, std::string message, std::source_location Source = std::source_location::current()); // Using the <source_location> 
 
