@@ -22,17 +22,17 @@ class Mesh
 
     int CountVertices(); // Method to return the amount of vertex points
 
-    bool CreateTriangle(float offsetamount, Vertex vertex1, Vertex vertex2, Vertex vertex3); // automatically creates a mesh with three points 
+    bool CreateTriangle(float xoffset, float yoffset, float zoffset); // automatically creates a mesh with three points 
 
-    bool add_point(Vertex point); // add a point to a mesh (stored in the vertex vector)
+    bool add_point(int x, int y, int z); // add a point to a mesh (stored in the vertex vector)
 
     std::vector<Vertex> getallvertices();  
 
     Vertex getvertex(int index);
 
-    bool CreateSquare(float offsetamount, Vertex vertex1, Vertex vertex2,  Vertex vertex3, Vertex vertex4);
+    bool CreateSquare(float xoffset, float yoffset, float zoffset);
    
-
+    void changepoint(int index, int x, int y, int z);
 
     private:
 
@@ -42,5 +42,5 @@ class Mesh
 
     std::string getxyz();
 
-    void offset(float amount);
+    void offset(float x, float y, float z);
 };

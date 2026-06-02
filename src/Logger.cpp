@@ -5,7 +5,9 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 
     Logger::Logger(ConfigService* config, const std::string& loggerId)
         {
@@ -41,9 +43,23 @@
                 }
             }
 
+
+            const auto now = std::chrono::system_clock::now();
+            const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
+
+            std::string finaltime = std::ctime(&t_c);
+
+            finaltime.pop_back(); // removing the newline
+
+            std::replace(finaltime.begin(),finaltime.end(), ':' , '-'); // filenames cant have dashes
+            std::replace(finaltime.begin(),finaltime.end(), ' ' , '_');
+
+            fs::create_directories(std::string(BINARY_DIR) + "/" + finaltime);
+            std::string logPath = std::string(BINARY_DIR) + "/" + finaltime + "/" + loggerConfiguration.filePath;
+
             if (FileOutput)
             {
-                outfile.open(loggerConfiguration.filePath);
+                outfiel.open(logPath);
             }
 
             log("Logger", LogFlag::Info, "Logger initialized.");

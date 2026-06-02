@@ -9,8 +9,14 @@ Mesh::Mesh(Logger& logs) : loggerref(logs) // assinging loggeref as the argument
 
 }
 
-bool Mesh::add_point(Vertex point)
+bool Mesh::add_point(int x, int y, int z)
 {
+
+    Vertex point;
+    point.x = x;
+    point.y = y;
+    point.z = z;
+
 vertices.push_back(point);
 loggerref.log("mesh", LogFlag::Debug, "Was able to add a vertex.");
 return true;
@@ -39,7 +45,7 @@ Vertex Mesh::getvertex(int index)
 
     else
     {
-        loggerref.log("mesh", LogFlag::Error, "Unable to fetch the correct vertex point.");
+        loggerref.log("mesh", LogFlag::Warning, "Unable to fetch the correct vertex point.");
         return vertices[0];// returns index 0 by default
     }  
     }
@@ -60,10 +66,9 @@ Vertex Mesh::offset(Vertex vertex, float amount) // Helper function that applies
 std::string Mesh::getxyz()  // Helper function that returns vertex points in string format for printing 
 {
     std::string message = "";
-    int counter = 0;
+    int counter = 1;
     for (Vertex vertex : vertices)
     {
-    
     message = message + "Vertex " + std::to_string(counter) + " - ";
     message = message + "[";
     message = message + std::to_string(vertex.x);
@@ -80,45 +85,75 @@ std::string Mesh::getxyz()  // Helper function that returns vertex points in str
 }
  
 
-void Mesh::offset(float amount) // Helper function that applies a offset to all of the vertices in a mesh.
+void Mesh::offset(float x, float y , float z) // Helper function that applies a offset to all of the vertices in a mesh.
 {
 for (Vertex& vertex : vertices) // refrencing the vertices directly
     {
-    vertex.x = vertex.x + amount;
-    vertex.y = vertex.y + amount;
-    vertex.z = vertex.z + amount;
+    vertex.x = vertex.x + x;
+    vertex.y = vertex.y + y;
+    vertex.z = vertex.z + z;
     }
 return;
 }
 
-bool Mesh::CreateTriangle(float offsetamount, Vertex vertex1, Vertex vertex2, Vertex vertex3)
+void Mesh::changepoint(int index, int x, int y, int z)
+{
+    int i = 0;
+    for (Vertex& vertex : vertices)
+    {
+       
+        if(i == index)
+        {
+            vertex.x = x;
+            vertex.y = y;
+            vertex.z = z;
+        }
+        i++;
+
+    }
+}
+
+bool Mesh::CreateTriangle(float xoffset, float yoffset, float zoffset)
 {
 
-    std::string message = " ";
-    add_point(vertex1);
-    add_point(vertex2);
-    add_point(vertex3);
-    offset(offsetamount);
+    std::string message = "";
+
+
+    add_point(0,0,1);
+    add_point(0,1,0);
+    add_point(1,0,0);
+
+
+    offset(xoffset, yoffset, zoffset);
 
 
     message = "Triangle mesh created with a offset of ";
-    message = message + std::to_string(offsetamount) + "\n";
+    message = message + "(";
+        message = message + std::to_string(xoffset) + ",";
+        message = message + std::to_string(yoffset) + ",";
+        message = message + std::to_string(zoffset);
+        message = message + ")";
+    message = message  + "\n";
     message = message + getxyz();
     loggerref.log("mesh", LogFlag::Info, message);
     return true;
 }
 
-bool Mesh::CreateSquare(float offsetamount, Vertex vertex1, Vertex vertex2,  Vertex vertex3, Vertex vertex4)
+bool Mesh::CreateSquare(float xoffset, float yoffset, float zoffset)
 {
         std::string message = " ";
-        add_point(vertex1);
-        add_point(vertex2);
-        add_point(vertex3);
-        add_point(vertex4);
-        offset(offsetamount);
+        add_point(1,0,0);
+        add_point(0,1,0);
+        add_point(0,0,0);
+        add_point(1,1,0);
+        offset(xoffset, yoffset, zoffset);
 
         message = "Square mesh created with a offset of ";
-        message = message + std::to_string(offsetamount);
+        message = message + "(";
+        message = message + std::to_string(xoffset) + ",";
+        message = message + std::to_string(yoffset) + ",";
+        message = message + std::to_string(zoffset);
+        message = message + ")";
         message = message + " with vertices ";
         message = message + getxyz();
         loggerref.log("mesh", LogFlag::Info, message);

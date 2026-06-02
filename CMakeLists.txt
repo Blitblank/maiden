@@ -54,6 +54,7 @@ add_library(maiden_core STATIC
     src/Engine.cpp
     src/Mesh.cpp
     src/Logger.cpp
+    src/PPS.cpp
     src/Device.cpp
     src/ConfigService.cpp
     src/Pipeline.cpp
@@ -83,7 +84,10 @@ target_link_options(maiden PRIVATE --coverage)
 target_link_options(maiden_test PRIVATE --coverage)
 
 # vulkan necessity
-target_compile_definitions(maiden_core PRIVATE VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
+target_compile_definitions(maiden_core PRIVATE
+    VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+    BINARY_DIR="${CMAKE_BINARY_DIR}"    
+)
 
 target_link_libraries(maiden PRIVATE
     maiden_core
