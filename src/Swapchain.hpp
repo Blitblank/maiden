@@ -8,18 +8,22 @@ class Swapchain {
 
     public:
 
-    Swapchain(Device* device);
+    Swapchain(Device* device, Logger* logger_);
     ~Swapchain() = default;
 
     std::vector<vk::Image> getImages() { return vkSwapchain_.getImages(); }
 
+    vk::SurfaceFormatKHR* surfaceFormat() { return &surfaceFormat_; };
+
     private:
+
+    Device* device_ = nullptr;
+    Logger* logger_ = nullptr;
 
     vk::raii::SwapchainKHR vkSwapchain_ = nullptr;
     std::vector<vk::Image> images_;
     std::vector<vk::raii::ImageView> imageViews_; 
 
-    Device* device_ = nullptr;
     vk::SurfaceFormatKHR surfaceFormat_;
     vk::PresentModeKHR presentFormat_;
     vk::Extent2D extent_;

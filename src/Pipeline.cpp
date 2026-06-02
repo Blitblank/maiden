@@ -6,7 +6,7 @@
 #include <array>
 #include <filesystem>
 
-Pipeline::Pipeline(Device* device, Logger* logger) : device_(device), logger_(logger) {
+Pipeline::Pipeline(Device* device, Swapchain* swapchain, Logger* logger) : device_(device), swapchain_(swapchain), logger_(logger) {
     if (device_ == nullptr || device_->logicalDevice() == nullptr ||
         *(device_->logicalDevice()) == nullptr) {
 
@@ -111,11 +111,48 @@ bool Pipeline::createPipeline() {
         .pAttachments = &colorBlendAttachment
     };
 
-    // finally pipeline
+    // pipeline layout
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
         .setLayoutCount = 0,
         .pushConstantRangeCount = 0
     };
-    pipelineLayout_ = vk::raii::PipelineLayout(*(device_->logicalDevice()), pipelineLayoutInfo);
+    vk::raii::PipelineLayout pipelineLayout = vk::raii::PipelineLayout(*(device_->logicalDevice()), pipelineLayoutInfo);
+
+    // rendering pipeline
+    vk::SurfaceFormatKHR* surfaceFormat = swapchain_->surfaceFormat();
+    vk::GraphicsPipelineCreateInfo graphicsPipelineInfo = {
+        .stageCount = 2,
+        .pStages = shaderStages.data(),
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssemblyInfo,
+        .pViewportState = &viewportStateInfo,
+        .pRasterizationState = &rasterizerInfo,
+        .pMultisampleState = &multisamplingInfo,
+        .pColorBlendState = &colorBlendingInfo,
+        .pDynamicState = &dynamicStateInfo,
+        .layout = pipelineLayout,
+        .renderPass = nullptr
+    };
+
+    vk::PipelineRenderingCreateInfo pipelineRenderingInfo = {
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &(surfaceFormat->format)
+    };
+
+    vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipelineCreateInfoChain = {
+        graphicsPipelineInfo,
+        pipelineRenderingInfo
+    };
+
+    // finally make that bad boy
+    graphicsPipeline_ = vk::raii::Pipeline(*(device_->logicalDevice()), nullptr, pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>());
+    if(graphicsPipeline_ == nullptr) {
+        logger_->log("Pipeline", LogFlag::Error, "Unable to create graphics pipeline.");
+        return false;
+    } else {
+        logger_->log("Pipeline", LogFlag::Info, "Created graphics pipeline.");
+        return true;
+    }
+    // TODO: fix validation error on drawParameters that we didnt set
 
 }
