@@ -1,15 +1,18 @@
 
 #pragma once
 
-#include "SDL3/SDL.h"
-#include "SDL3/SDL_vulkan.h"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
+#include <vulkan/vulkan_raii.hpp>
+
+#include "Logger.hpp"
 
 // reference: https://wiki.libsdl.org/SDL3/SDL_CreateWindow
 class Window {
 
 public:
 
-    Window();
+    Window(Logger* logger);
     ~Window();
 
     // for SDL3 event polling, runs once per app iteration in its while(running) loop
@@ -17,6 +20,8 @@ public:
 
     bool rendering() { return rendering_; }
     bool open() { return open_; }
+    bool createSurface(vk::raii::Instance* instance, vk::raii::SurfaceKHR* surface);
+    bool getExtent(int32_t* width, int32_t* height);
 
 private:
 
@@ -25,6 +30,8 @@ private:
 
     // this window class will eventually hold mouse, keyboard, audio, etc. interfaces, like an SDL3 hub
     // app will be able to attach callbacks for mouse and keyboard events
+
+    Logger* logger_;
 
     SDL_Window* sdlWindow_;
 

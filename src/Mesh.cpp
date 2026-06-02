@@ -18,14 +18,14 @@ bool Mesh::add_point(int x, int y, int z)
     point.z = z;
 
 vertices.push_back(point);
-loggerref.log("mesh", Logger::Flag::debug, "Was able to add a vertex.");
+loggerref.log("mesh", LogFlag::Debug, "Was able to add a vertex.");
 return true;
 }
 
 
 std::vector<Vertex> Mesh::getallvertices()
 {
-    loggerref.log("mesh", Logger::Flag::debug, "Was able to retrun all vertices.");
+    loggerref.log("mesh", LogFlag::Debug, "Was able to retrun all vertices.");
     return vertices;
 }
 
@@ -38,14 +38,14 @@ Vertex Mesh::getvertex(int index)
     {
     if (!(index < 0 || index >= vertices.size())) //check to see if index is out of bounds
     {
-        loggerref.log("mesh", Logger::Flag::debug, "Was able to find the vertex.");
+        loggerref.log("mesh", LogFlag::Debug, "Was able to find the vertex.");
             return vertices[index]; // returns index 0 by default
 
     }
 
     else
     {
-        loggerref.log("mesh", Logger::Flag::warning, "Unable to fetch the correct vertex point.");
+        loggerref.log("mesh", LogFlag::Warning, "Unable to fetch the correct vertex point.");
         return vertices[0];// returns index 0 by default
     }  
     }
@@ -135,7 +135,7 @@ bool Mesh::CreateTriangle(float xoffset, float yoffset, float zoffset)
         message = message + ")";
     message = message  + "\n";
     message = message + getxyz();
-    loggerref.log("mesh", Logger::Flag::info, message);
+    loggerref.log("mesh", LogFlag::Info, message);
     return true;
 }
 
@@ -156,6 +156,6 @@ bool Mesh::CreateSquare(float xoffset, float yoffset, float zoffset)
         message = message + ")";
         message = message + " with vertices ";
         message = message + getxyz();
-        loggerref.log("mesh", Logger::Flag::info, message);
+        loggerref.log("mesh", LogFlag::Info, message);
         return true;
 }

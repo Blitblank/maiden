@@ -4,8 +4,9 @@
 #include <iostream>
 
 #include "Device.hpp"
+#include "Swapchain.hpp"
 
-Engine::Engine(Window* window): window_(window) {
+Engine::Engine(Window* window, Logger* logger): window_(window), logger_(logger) {
 
     // cleans up this constructor 
     init();
@@ -15,22 +16,17 @@ Engine::Engine(Window* window): window_(window) {
 void Engine::init() {
 
     if(createInstance()) {
-        // TODO: need some kind of logger service
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Vulkan instance successfully created." << std::endl;
+        logger_->log("Engine", LogFlag::Info, "Vulkan instance successfully created.");
     } else {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error creating Vulkan instance." << std::endl;
+        logger_->log("Engine", LogFlag::Error, "Unable to create Vulkan instance.");
     }
 
     // device selection and setup
-    Device device(&instance_);
-    (void)device.selectPhysicalDevice();
-    (void)device.createLogicalDevice();
+    Device device(&instance_, window_, logger_);
 
-    // next steps:
-    // queue creation
-    // vulkan memory allocator
-    // create vulkan surface
-    // attach surface to window
+    // render pipeline
+    Swapchain swapchain(&device);
+    // Pipeline pipeline(&device, &swapchain);
 
 }
 
@@ -57,10 +53,12 @@ bool Engine::createInstance() {
     auto extensionProperties = context_.enumerateInstanceExtensionProperties();
 
     // print if we feel like it
-    std::cout << "Available Vulkan Extensions: " << std::endl;
+    logger_->log("Engine", LogFlag::Debug, "Available Vulkan Extensions:");
     for(const auto& extensionProperty : extensionProperties) {
-        std::cout << "\t" << extensionProperty.extensionName << std::endl;
-    } // this would be a logger.debug(...)
+        // TODO: log function probably could do with variable arguments and string formatting because this is slightly clunky
+        std::string msg = "\t" + std::string(extensionProperty.extensionName);
+        logger_->log("Engine", LogFlag::Debug, msg);
+    }
 
     // check that all required extensions are available
     for(uint32_t i = 0; i < requiredInstanceExtensions.size(); i++) { // for each extension that we require
@@ -72,11 +70,13 @@ bool Engine::createInstance() {
             }
         }
 	    if(!found) {
-            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required SDL3 extension not supported: " << requiredInstanceExtensions[i] << std::endl;
+            std::string msg = "Required SDL3 extension not supported: " + std::string(requiredInstanceExtensions[i]);
+            logger_->log("Engine", LogFlag::Warning, msg);
             errorCount++;
         } else {
 	        // in case you're curious
-            //std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] SDL3 extension located: " << requiredInstanceExtensions[i] << std::endl;
+            std::string msg = "SDL3 extension located: " + std::string(requiredInstanceExtensions[i]);
+            logger_->log("Engine", LogFlag::Debug, msg);
         }
     }
 
@@ -88,9 +88,10 @@ bool Engine::createInstance() {
     auto validationLayerProperties = context_.enumerateInstanceLayerProperties();
 
     // again print if we feel like it
-    std::cout << "Available Vulkan Validation Layers: " << std::endl;
+    logger_->log("Engine", LogFlag::Debug, "Available Vulkan Validation Layers:");
     for(const auto& validationLayer : validationLayerProperties) {
-        std::cout << "\t" << validationLayer.layerName << std::endl;
+        std::string msg = "\t" + std::string(validationLayer.layerName);
+        logger_->log("Engine", LogFlag::Debug, msg);
     }
 
     // check that all required validation layers are avilable
@@ -104,15 +105,18 @@ bool Engine::createInstance() {
         }
         if(!found) {
             errorCount++;
-            std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Required validation layer not supported: " << requiredValidationLayers[i] << std::endl;
+            std::string msg = "Required validation layer not supported: " + std::string(requiredValidationLayers[i]);
+            logger_->log("Engine", LogFlag::Warning, msg);
         } else { // in case you're curious
-            //std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] VkValidation layer located: " << requiredValidationLayers[i] << std::endl;
+            std::string msg = "VkValidation layer located: " + std::string(requiredValidationLayers[i]);
+            logger_->log("Engine", LogFlag::Debug, msg);
         }
     }
     
     // if any we had errors then we must exit
     if(errorCount != 0) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Unable to create Vulkan instance. Error count: " << errorCount << std::endl;
+        std::string msg = "Unable to create Vulkan instance. Error count: " + std::to_string(errorCount);
+        logger_->log("Engine", LogFlag::Debug, msg);
         return false;
     }
 
@@ -132,7 +136,7 @@ std::vector<const char*> Engine::getRequiredInstanceExtensions() {
 
     // get extensions that our windowing library requires
     uint32_t sdlExtensionsCount = 0;
-    const char* const* sdlExtensions{ SDL_Vulkan_GetInstanceExtensions(&sdlExtensionsCount) };
+    const char* const* sdlExtensions{ SDL_Vulkan_GetInstanceExtensions(&sdlExtensionsCount) }; // TODO: get this from window so all sdl3 is encapsulated there
     // what in the world is this kind of pointer btw
 
     std::vector<const char*> requiredExtensions(sdlExtensions, sdlExtensions + static_cast<size_t>(sdlExtensionsCount));
@@ -167,7 +171,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL Engine::debugCallback(vk::DebugUtilsMessageSeve
                                                               const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                               void* pUserData) {
 
-    // this will eventually go through our logger
+    // validation layers are for debugging only (and also its a pain hooking a nonstatic object to a static function)
     std::cout << "[ Validation Layer ] [Type: " << to_string(type) << "] " <<  pCallbackData->pMessage << std::endl;
     /*
     vk severity types:

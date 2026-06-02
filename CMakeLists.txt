@@ -25,6 +25,25 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sdl3)
 
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_CXX ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    libconfig
+    GIT_REPOSITORY https://github.com/hyperrealm/libconfig.git
+    GIT_TAG        v1.8.2
+)
+FetchContent_MakeAvailable(libconfig)
+
+if(TARGET libconfig++)
+    set(MAIDEN_LIBCONFIGXX_TARGET libconfig++)
+elseif(TARGET config++)
+    set(MAIDEN_LIBCONFIGXX_TARGET config++)
+else()
+    message(FATAL_ERROR "Could not find libconfig++ CMake target")
+endif()
+
 find_package(Vulkan REQUIRED)
 
 # add_subdirectory() to nest CMakeLists
@@ -37,6 +56,9 @@ add_library(maiden_core STATIC
     src/Logger.cpp
     src/PPS.cpp
     src/Device.cpp
+    src/ConfigService.cpp
+    src/Pipeline.cpp
+    src/Swapchain.cpp
     # include extra source files here
 )
 
@@ -46,6 +68,7 @@ add_executable(maiden
 
 add_executable(maiden_test
     test/TestApp.cpp
+    test/TestConfigService.cpp
 )
 
 target_include_directories(maiden_core PRIVATE
@@ -67,6 +90,10 @@ target_link_libraries(maiden PRIVATE
     maiden_core
     SDL3::SDL3
     Vulkan::Vulkan
+)
+
+target_link_libraries(maiden_core PUBLIC
+    ${MAIDEN_LIBCONFIGXX_TARGET}
 )
 
 # test only stuff down here VVV
