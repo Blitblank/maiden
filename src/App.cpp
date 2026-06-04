@@ -21,6 +21,8 @@ App::App() {
 
 int32_t App::run() {
 
+    engineLogger_->log("App", LogFlag::Info, "Starting main render loop...");
+
     SDL_Event event;
 	while (window_->open()) {
         // app loop for as long as the window is open
@@ -35,7 +37,8 @@ int32_t App::run() {
         // engine will have a pointer to window so can handle pushing to the screen
 
         if(window_->rendering()) {
-            // engine.draw();
+            
+            engine_->drawFrame();
 
             // TODO: performance profiling :3
             // static int counter = 0;
@@ -47,7 +50,7 @@ int32_t App::run() {
 
         } else {
             // throttle while the window isn't active
-            // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 

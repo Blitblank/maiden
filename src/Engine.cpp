@@ -23,16 +23,101 @@ void Engine::init() {
     }
 
     // device selection and setup
-    Device device(&instance_, window_, logger_);
+    device_ = new Device(&instance_, window_, logger_);
 
     // render pipeline
-    Swapchain swapchain(&device, logger_);
-    Pipeline pipeline(&device, &swapchain, logger_);
+    swapchain_ = new Swapchain(device_, logger_);
+    pipeline_ = new Pipeline(device_, swapchain_, logger_);
+
+    (void)createSyncObjects();
+    (void)createCommandBuffer();
 
 }
 
-void Engine::draw() {
+bool Engine::drawFrame() {
+    
+    // wait for the last draw to complete
+    if(drawFence_ == nullptr) {
+        logger_->log("Engine", LogFlag::Error, "drawFence_ is nullptr!");
+        return false;
+    }
+    auto fenceResult = device_->logicalDevice()->waitForFences(*drawFence_, vk::True, UINT64_MAX); // permablock until draw complete
+    if(fenceResult != vk::Result::eSuccess) {
+        logger_->log("Engine", LogFlag::Error, "Failed to wait for fence!");
+        return false;
+    }
+    device_->logicalDevice()->resetFences(*drawFence_);
 
+    // get next image index
+    if(presentCompleteSemaphore_ == nullptr) {
+        logger_->log("Engine", LogFlag::Error, "presentCompleteSemaphore_ is nullptr!");
+        return false;
+    }
+    vk::raii::SwapchainKHR swapchainRaii(*(device_->logicalDevice()), swapchain_->swapchain()); // acquireNextImage only exists on vk::raii:SwapchainKHR
+    auto [semaphoreResult, imageIndex] = swapchainRaii.acquireNextImage(UINT64_MAX, *presentCompleteSemaphore_, nullptr); // again permablock
+    if(semaphoreResult != vk::Result::eSuccess) {
+        logger_->log("Engine", LogFlag::Error, "Failed to acquire next swapchain image!");
+        return false;
+    }
+
+    // render that baby
+    (void)render(imageIndex);
+
+    // present to the screen
+    vk::SwapchainKHR swapchain = swapchain_->swapchain();
+    const vk::PresentInfoKHR presentInfo {
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*renderCompleteSemaphore_,
+        .swapchainCount = 1,
+        .pSwapchains = &swapchain,
+        .pImageIndices = &imageIndex
+    };
+    auto presentResult = device_->graphicsQueue().presentKHR(presentInfo);
+
+    if(presentResult != vk::Result::eSuccess) {
+        logger_->log("Engine", LogFlag::Error, "Failed to present swapchain image!");
+        return false;
+    }
+
+    return true; // sure !~
+}
+
+bool Engine::render(uint32_t imageIndex) {
+
+    recordCommandBuffer(imageIndex);
+
+    // attach pipeline
+    commandBuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_->pipeline());
+
+    // set rendering range
+    commandBuffer_.setViewport(0, vk::Viewport(0.0f, 0.0f, static_cast<float>(swapchain_->extent().width), static_cast<float>(swapchain_->extent().height), 0.0f, 1.0f));
+    commandBuffer_.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swapchain_->extent()));
+
+    // command to draw geometry and fragments
+    commandBuffer_.draw(3, 1, 0, 0); // vertexCount, instanceCount, firstVertex offset, firstInstance offset
+
+    // end draw call
+    commandBuffer_.endRendering();
+
+    // commands present to screen
+    transitionImageLayout(imageIndex, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AccessFlagBits2::eColorAttachmentWrite,
+        {}, vk::PipelineStageFlagBits2::eColorAttachmentOutput, vk::PipelineStageFlagBits2::eBottomOfPipe);
+
+    // submit command buffer
+    // the moment we've all been waiting for
+    vk::PipelineStageFlags waitDestinationStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    const vk::SubmitInfo submitInfo {
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*presentCompleteSemaphore_, // &* casts a vk::raii type to just a vk:: type
+        .pWaitDstStageMask = &waitDestinationStageMask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &*commandBuffer_,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*renderCompleteSemaphore_
+    };
+    device_->graphicsQueue().submit(submitInfo, *drawFence_); // :D
+
+    return true; // i guess man
 }
 
 bool Engine::createInstance() {
@@ -45,7 +130,7 @@ bool Engine::createInstance() {
         .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName = "null",
         .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-        .apiVersion = VK_API_VERSION_1_4 // this one is most important
+        .apiVersion = VK_API_VERSION_1_3 // this one is most important
     };
 
     std::vector<const char*> requiredInstanceExtensions = getRequiredInstanceExtensions();
@@ -191,3 +276,85 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL Engine::debugCallback(vk::DebugUtilsMessageSeve
     return vk::False;
 }
 
+bool Engine::createCommandBuffer() {
+
+    vk::CommandBufferAllocateInfo allocInfo {
+        .commandPool = *(device_->commandPool()),
+        .level = vk::CommandBufferLevel::ePrimary,
+        .commandBufferCount = 1
+    };
+
+    commandBuffer_ = std::move(vk::raii::CommandBuffers(*(device_->logicalDevice()), allocInfo).front());
+
+    return true;
+
+}
+
+bool Engine::recordCommandBuffer(uint32_t imageIndex) {
+
+    commandBuffer_.begin({});
+
+    transitionImageLayout(imageIndex, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, {},
+        vk::AccessFlagBits2::eColorAttachmentWrite, vk::PipelineStageFlagBits2::eColorAttachmentOutput, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+
+    // command for clearing the framebuffer
+    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::RenderingAttachmentInfo attachmentInfo = {
+        .imageView = swapchain_->imageView(imageIndex),
+        .loadOp = vk::AttachmentLoadOp::eClear,
+        .storeOp = vk::AttachmentStoreOp::eStore,
+        .clearValue = clearColor
+    };
+
+    // command to begin rendering
+    vk::RenderingInfo renderingInfo = {
+        .renderArea = { .offset = { 0, 0 }, .extent = swapchain_->extent() }, // render to the full extent
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &attachmentInfo
+    };
+    commandBuffer_.beginRendering(renderingInfo);
+
+    return true;
+
+}
+
+// TODO: maybe this should be in swapchain, like above call commandBuffer.pipelineBarrier2(transitionImageLayout...);
+void Engine::transitionImageLayout(uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags2 srcAccessMask,
+    vk::AccessFlags2 destAccessMask, vk::PipelineStageFlags2 srcStageMask, vk::PipelineStageFlags2 destStageMask) {
+
+        vk::ImageMemoryBarrier2 barrier = {
+            .srcStageMask = srcStageMask,
+            .srcAccessMask = srcAccessMask,
+            .dstStageMask = destStageMask,
+            .dstAccessMask = destAccessMask,
+            .oldLayout = oldLayout,
+            .newLayout = newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = swapchain_->image(imageIndex),
+            .subresourceRange = {
+                .aspectMask = vk::ImageAspectFlagBits::eColor,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        vk::DependencyInfo dependencyInfo = {
+            .dependencyFlags = {},
+            .imageMemoryBarrierCount = 1,
+            .pImageMemoryBarriers = &barrier
+        };
+
+        commandBuffer_.pipelineBarrier2(dependencyInfo);
+}
+
+void Engine::createSyncObjects() {
+
+    presentCompleteSemaphore_ = vk::raii::Semaphore(*(device_->logicalDevice()), vk::SemaphoreCreateInfo()); 
+    renderCompleteSemaphore_ = vk::raii::Semaphore(*(device_->logicalDevice()), vk::SemaphoreCreateInfo());
+    drawFence_ = vk::raii::Fence(*(device_->logicalDevice()), { .flags = vk::FenceCreateFlagBits::eSignaled });
+
+}
