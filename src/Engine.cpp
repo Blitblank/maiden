@@ -142,7 +142,8 @@ bool Engine::createInstance() {
     logger_->log("Engine", LogFlag::Debug, "Available Vulkan Extensions:");
     for(const auto& extensionProperty : extensionProperties) {
         // TODO: log function probably could do with variable arguments and string formatting because this is slightly clunky
-        std::string msg = "\t" + std::string(extensionProperty.extensionName);
+        std::string extensionName = (extensionProperty.extensionName).data();
+        std::string msg = "\t" + extensionName;
         logger_->log("Engine", LogFlag::Debug, msg);
     }
 
@@ -176,7 +177,8 @@ bool Engine::createInstance() {
     // again print if we feel like it
     logger_->log("Engine", LogFlag::Debug, "Available Vulkan Validation Layers:");
     for(const auto& validationLayer : validationLayerProperties) {
-        std::string msg = "\t" + std::string(validationLayer.layerName);
+        std::string layerName = (validationLayer.layerName).data();
+        std::string msg = "\t" + layerName;
         logger_->log("Engine", LogFlag::Debug, msg);
     }
 

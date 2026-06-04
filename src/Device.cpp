@@ -37,7 +37,8 @@ bool Device::selectPhysicalDevice() {
         return false;
     } else {
         vk::PhysicalDeviceProperties deviceProperties = physicalDevice_.getProperties();
-        std::string msg = "Physical device selected: " + std::string(deviceProperties.deviceName);
+        std::string deviceName = (deviceProperties.deviceName).data();
+        std::string msg = "Physical device selected: " + deviceName;
         logger_->log("Device", LogFlag::Info, msg);
         return true;
     }
@@ -49,7 +50,8 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
     vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
-    std::string msg = "Physical device found: " + std::string(deviceProperties.deviceName);
+    std::string deviceName = (deviceProperties.deviceName).data();
+    std::string msg = "Physical device found: " + deviceName;
     logger_->log("Device", LogFlag::Debug, msg);
 
     uint32_t score = 0;
@@ -60,7 +62,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
         score += 2;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is not a discrete device!";
+        std::string msg = "Warning: physical device " + deviceName + " is not a discrete device!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -68,7 +70,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(deviceProperties.apiVersion >= vk::ApiVersion14) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support Vulkan 1.4!";
+        std::string msg = "Warning: physical device " + deviceName + " does not support Vulkan 1.4!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -77,7 +79,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(std::ranges::any_of( queueFamilies, []( auto const & qfp ) { return !!( qfp.queueFlags & vk::QueueFlagBits::eGraphics ); } )) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support graphics queue families!";
+        std::string msg = "Warning: physical device " + deviceName + " does not support graphics queue families!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -99,7 +101,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(missingExtensions == 0) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing extensions!";
+        std::string msg = "Warning: physical device " + deviceName + " is missing extensions!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -110,7 +112,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
         && features.template get<vk::PhysicalDeviceVulkan13Features>().synchronization2 ) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing features!";
+        std::string msg = "Warning: physical device " + deviceName + " is missing features!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 

@@ -133,7 +133,7 @@ void PPS::getmemoryusage()
 
 
 
-    loggerref.log("PPS", Logger::Flag::info, "Available Memory " +   availablememory + " out of " + output);
+    loggerref.log("PPS", LogFlag::Info, "Available Memory " +   availablememory + " out of " + output);
 
     memoryusage = "Available Memory " + availablememory + " out of " + output;
 
@@ -337,7 +337,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-        loggerref.log("PPS", Logger::Flag::info, output);
+        loggerref.log("PPS", LogFlag::Info, output);
 
         return output;
 
@@ -409,7 +409,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-        loggerref.log("PPS", Logger::Flag::info, output);
+        loggerref.log("PPS", LogFlag::Info, output);
 
         return output;
 
