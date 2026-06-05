@@ -53,8 +53,8 @@ bool Engine::drawFrame() {
         logger_->log("Engine", LogFlag::Error, "presentCompleteSemaphore_ is nullptr!");
         return false;
     }
-    vk::raii::SwapchainKHR swapchainRaii(*(device_->logicalDevice()), swapchain_->swapchain()); // acquireNextImage only exists on vk::raii:SwapchainKHR
-    auto [semaphoreResult, imageIndex] = swapchainRaii.acquireNextImage(UINT64_MAX, *presentCompleteSemaphore_, nullptr); // again permablock
+    vk::raii::SwapchainKHR* swapchain = swapchain_->swapchain();
+    auto [semaphoreResult, imageIndex] = swapchain->acquireNextImage(UINT64_MAX, *presentCompleteSemaphore_, nullptr); // again permablock
     if(semaphoreResult != vk::Result::eSuccess) {
         logger_->log("Engine", LogFlag::Error, "Failed to acquire next swapchain image!");
         return false;
@@ -64,12 +64,11 @@ bool Engine::drawFrame() {
     (void)render(imageIndex);
 
     // present to the screen
-    vk::SwapchainKHR swapchain = swapchain_->swapchain();
     const vk::PresentInfoKHR presentInfo {
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &*renderCompleteSemaphore_,
         .swapchainCount = 1,
-        .pSwapchains = &swapchain,
+        .pSwapchains = &**swapchain, // dark programming
         .pImageIndices = &imageIndex
     };
     auto presentResult = device_->graphicsQueue().presentKHR(presentInfo);
@@ -86,23 +85,6 @@ bool Engine::render(uint32_t imageIndex) {
 
     recordCommandBuffer(imageIndex);
 
-    // attach pipeline
-    commandBuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_->pipeline());
-
-    // set rendering range
-    commandBuffer_.setViewport(0, vk::Viewport(0.0f, 0.0f, static_cast<float>(swapchain_->extent().width), static_cast<float>(swapchain_->extent().height), 0.0f, 1.0f));
-    commandBuffer_.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swapchain_->extent()));
-
-    // command to draw geometry and fragments
-    commandBuffer_.draw(3, 1, 0, 0); // vertexCount, instanceCount, firstVertex offset, firstInstance offset
-
-    // end draw call
-    commandBuffer_.endRendering();
-
-    // commands present to screen
-    transitionImageLayout(imageIndex, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AccessFlagBits2::eColorAttachmentWrite,
-        {}, vk::PipelineStageFlagBits2::eColorAttachmentOutput, vk::PipelineStageFlagBits2::eBottomOfPipe);
-
     // submit command buffer
     // the moment we've all been waiting for
     vk::PipelineStageFlags waitDestinationStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
@@ -116,6 +98,8 @@ bool Engine::render(uint32_t imageIndex) {
         .pSignalSemaphores = &*renderCompleteSemaphore_
     };
     device_->graphicsQueue().submit(submitInfo, *drawFence_); // :D
+
+    device_->graphicsQueue().waitIdle();
 
     return true; // i guess man
 }
@@ -297,12 +281,13 @@ bool Engine::recordCommandBuffer(uint32_t imageIndex) {
     commandBuffer_.begin({});
 
     transitionImageLayout(imageIndex, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, {},
-        vk::AccessFlagBits2::eColorAttachmentWrite, vk::PipelineStageFlagBits2::eColorAttachmentOutput, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
+        vk::AccessFlagBits2::eColorAttachmentWrite, vk::PipelineStageFlagBits2::eTopOfPipe, vk::PipelineStageFlagBits2::eColorAttachmentOutput);
 
     // command for clearing the framebuffer
-    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::ClearValue clearColor = vk::ClearColorValue(0.01f, 0.01f, 0.02f, 1.0f);
     vk::RenderingAttachmentInfo attachmentInfo = {
         .imageView = swapchain_->imageView(imageIndex),
+        .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
         .loadOp = vk::AttachmentLoadOp::eClear,
         .storeOp = vk::AttachmentStoreOp::eStore,
         .clearValue = clearColor
@@ -316,6 +301,25 @@ bool Engine::recordCommandBuffer(uint32_t imageIndex) {
         .pColorAttachments = &attachmentInfo
     };
     commandBuffer_.beginRendering(renderingInfo);
+
+    // attach pipeline
+    commandBuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline_->pipeline());
+
+    // set rendering range
+    commandBuffer_.setViewport(0, vk::Viewport(0.0f, 0.0f, static_cast<float>(swapchain_->extent().width), static_cast<float>(swapchain_->extent().height), 0.0f, 1.0f));
+    commandBuffer_.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swapchain_->extent()));
+
+    // command to draw geometry and fragments
+    commandBuffer_.draw(3, 1, 0, 0); // vertexCount, instanceCount, firstVertex offset, firstInstance offset
+
+    // end draw call
+    commandBuffer_.endRendering();
+
+    // commands present to screen
+    transitionImageLayout(imageIndex, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AccessFlagBits2::eColorAttachmentWrite,
+        {}, vk::PipelineStageFlagBits2::eColorAttachmentOutput, vk::PipelineStageFlagBits2::eBottomOfPipe);
+
+    commandBuffer_.end();
 
     return true;
 

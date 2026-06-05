@@ -44,15 +44,16 @@ bool Swapchain::createSwapchain() {
     // TODO: [after presentation] need to handle swapchain recreation as a result of window changes
     swapchainCreateInfo.oldSwapchain = nullptr;
 
-    vkSwapchain_ = vk::raii::SwapchainKHR(*logicalDevice, swapchainCreateInfo);
-    images_ = vkSwapchain_.getImages();
-
-    if(vkSwapchain_ == nullptr) {
+    try {
+        vkSwapchain_ = vk::raii::SwapchainKHR(*logicalDevice, swapchainCreateInfo);
+    } catch (const vk::SystemError& e) {
         logger_->log("Swapchain", LogFlag::Error, "Could not create the Vulkan Swapchain!");
         return false;
-    } else {
-        return true;
     }
+
+    images_ = vkSwapchain_.getImages();
+    return true;
+    
 }
 
 vk::SurfaceFormatKHR Swapchain::chooseSurfaceFormat(std::vector<vk::SurfaceFormatKHR> const& availableFormats) {

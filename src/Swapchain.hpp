@@ -16,7 +16,7 @@ class Swapchain {
     vk::ImageView imageView(size_t index);
     vk::SurfaceFormatKHR* surfaceFormat() { return &surfaceFormat_; };
     vk::Extent2D extent() { return extent_; }
-    vk::SwapchainKHR swapchain() { return *vkSwapchain_; }
+    vk::raii::SwapchainKHR* swapchain() { return &vkSwapchain_; }
 
     private:
 
