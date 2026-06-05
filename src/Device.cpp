@@ -24,9 +24,9 @@ bool Device::selectPhysicalDevice() {
     }
 
     // validate found devices
-    uint32_t maxScore = 0;
+    int32_t maxScore = 0;
     for(vk::raii::PhysicalDevice& physicalDevice : physicalDevices) {
-        uint32_t capabilityScore = evaluatePhysicalDevice(physicalDevice);
+        int32_t capabilityScore = evaluatePhysicalDevice(physicalDevice);
         if(capabilityScore > maxScore) {
             maxScore = capabilityScore;
             physicalDevice_ = physicalDevice;
@@ -45,7 +45,7 @@ bool Device::selectPhysicalDevice() {
 
 }
 
-uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
+int32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
 
     vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
     vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
@@ -54,7 +54,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     std::string msg = "Physical device found: " + deviceName;
     logger_->log("Device", LogFlag::Debug, msg);
 
-    uint32_t score = 0;
+    int32_t score = 0;
 
     // TODO: this is very basic and can be improved
 
@@ -66,11 +66,11 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
-    // prefer devices that support vulkan 1.4
-    if(deviceProperties.apiVersion >= vk::ApiVersion14) {
+    // prefer devices that support vulkan 1.3
+    if(deviceProperties.apiVersion >= vk::ApiVersion13) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + deviceName + " does not support Vulkan 1.4!";
+        std::string msg = "Warning: physical device " + deviceName + " does not support >= Vulkan 1.3!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -110,7 +110,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering
         && features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState
         && features.template get<vk::PhysicalDeviceVulkan13Features>().synchronization2 ) {
-        score++;
+        score += 3; // this is most important
     } else {
         std::string msg = "Warning: physical device " + deviceName + " is missing features!";
         logger_->log("Device", LogFlag::Debug, msg);

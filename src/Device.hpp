@@ -25,7 +25,7 @@ class Device {
     private:
 
     // gives a device a score to attempt to select the most capable device
-    uint32_t evaluatePhysicalDevice(vk::raii::PhysicalDevice& device);
+    int32_t evaluatePhysicalDevice(vk::raii::PhysicalDevice& device);
 
     // creates the surface
     void createSurface();
