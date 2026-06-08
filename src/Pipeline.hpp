@@ -19,9 +19,12 @@ class Pipeline {
     // a significant portion of nitty-gritty vulkan configuration lies in here
     bool createPipeline();
 
+<<<<<<< HEAD
     // main render pass prerequisites (unused)
     void createRenderPass();
 
+=======
+>>>>>>> c2591cf2ff7f9e3b5519dea9a635be9608c73616
     vk::raii::Pipeline graphicsPipeline_ = nullptr;
 
     Device* device_ = nullptr;
