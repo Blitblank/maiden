@@ -135,10 +135,7 @@ void PPS::getmemoryusage()
     loggerref.log("PPS", LogFlag::Info, "Available Memory " +   availablememory + " out of " + output);
 
 
-<<<<<<< HEAD
     loggerref.log("PPS", LogFlag::Info, "Available Memory " +   availablememory + " out of " + output);
-=======
->>>>>>> c2591cf2ff7f9e3b5519dea9a635be9608c73616
 
     memoryusage = "Available Memory " + availablememory + " out of " + output;
 

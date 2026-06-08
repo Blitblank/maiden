@@ -1,11 +1,6 @@
 static float2 positions[3] = float2[](
-<<<<<<< HEAD
     float2(0.75, 0.75),
     float2(-0.75, 0.75),
-=======
-    float2(-0.75, 0.75),
-    float2(0.75, 0.75),
->>>>>>> c2591cf2ff7f9e3b5519dea9a635be9608c73616
     float2(0.0, -0.75)
 );
 

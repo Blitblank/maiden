@@ -18,8 +18,6 @@ class Swapchain {
     vk::Extent2D extent() { return extent_; }
     vk::raii::SwapchainKHR* swapchain() { return &vkSwapchain_; }
 
-    vk::SurfaceFormatKHR* surfaceFormat() { return &surfaceFormat_; };
-
     private:
 
     Device* device_ = nullptr;
