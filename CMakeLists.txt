@@ -88,6 +88,7 @@ add_library(maiden_core STATIC
     src/Pipeline.cpp
     src/ShaderModule.cpp
     src/Swapchain.cpp
+    src/VertexBuffer.cpp
     # include extra source files here
 )
 

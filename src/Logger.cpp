@@ -59,7 +59,7 @@ namespace fs = std::filesystem;
 
             if (FileOutput)
             {
-                outfiel.open(logPath);
+                outfile.open(logPath);
             }
 
             log("Logger", LogFlag::Info, "Logger initialized.");
