@@ -38,12 +38,12 @@ private:
     bool initDebugMessenger();
 
     // write graphics commands
-    bool createCommandBuffer();
-    bool recordCommandBuffer(uint32_t imageIndex);
-    vk::raii::CommandBuffer commandBuffer_ = nullptr;
+    bool createCommandBuffers();
+    bool recordCommandBuffer(int frameIndex);
+    std::vector<vk::raii::CommandBuffer> commandBuffers_; // command buffer for each swapchain image
 
     // helper for syncronization instantiation
-    void createSyncObjects();
+    bool createSyncObjects();
 
     // helper for swapping images
     void transitionImageLayout(uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags2 srcAccessMask,
@@ -66,12 +66,16 @@ private:
     vk::raii::Instance instance_ = nullptr;
     vk::raii::DebugUtilsMessengerEXT debugMessenger_ = nullptr;
 
-    vk::raii::Semaphore presentCompleteSemaphore_ = nullptr;
-    vk::raii::Semaphore renderCompleteSemaphore_ = nullptr;
-    vk::raii::Fence drawFence_ = nullptr;
+    // semaphore for each swapchain image
+    std::vector<vk::raii::Semaphore> presentCompleteSemaphores_;
+    std::vector<vk::raii::Semaphore> renderCompleteSemaphores_;
+    std::vector<vk::raii::Fence> drawFences_;
 
     // members for control over validation layers
     static constexpr bool enableValidationLayers = true; // TODO: only true in debug mode
     const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+    const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t frameIndex_ = 0;
 
 };
