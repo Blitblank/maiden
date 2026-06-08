@@ -12,10 +12,15 @@ class Pipeline {
     Pipeline(Device* device, Swapchain* swapchain, Logger* logger);
     ~Pipeline() = default;
 
+    vk::Pipeline pipeline() { return *graphicsPipeline_; }
+
     private:
 
     // a significant portion of nitty-gritty vulkan configuration lies in here
     bool createPipeline();
+
+    // main render pass prerequisites (unused)
+    void createRenderPass();
 
     vk::raii::Pipeline graphicsPipeline_ = nullptr;
 

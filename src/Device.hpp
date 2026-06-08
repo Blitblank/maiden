@@ -9,7 +9,7 @@
 class Device { 
 
     public:
-
+    
     Device(vk::raii::Instance* instance, Window* window, Logger* logger);
     ~Device();
 
@@ -18,12 +18,14 @@ class Device {
     vk::raii::SurfaceKHR* getSurface() { return &surface_; }
 
     vk::raii::PhysicalDevice physicalDevice() { return physicalDevice_; }
-    vk::raii::Device* logicalDevice() { return &logicalDevice_; }
+    vk::raii::Device* logicalDevice() { return &logicalDevice_; } // TODO: why does this return a pointer ??? its such a pain to use
+    vk::raii::CommandPool* commandPool() { return &commandPool_; } // same here
+    vk::raii::Queue graphicsQueue() { return graphicsQueue_; }
 
     private:
 
     // gives a device a score to attempt to select the most capable device
-    uint32_t evaluatePhysicalDevice(vk::raii::PhysicalDevice& device);
+    int32_t evaluatePhysicalDevice(vk::raii::PhysicalDevice& device);
 
     // creates the surface
     void createSurface();
@@ -34,16 +36,22 @@ class Device {
     // initializes the logical device
     bool createLogicalDevice();
 
+    // ugh
+    bool createCommandPool();
+
     // vulkan objects
     vk::raii::Instance* instance_ = nullptr;
     vk::raii::PhysicalDevice physicalDevice_ = nullptr;
     vk::raii::Device logicalDevice_ = nullptr;
     vk::raii::Queue graphicsQueue_ = nullptr;
     vk::raii::SurfaceKHR surface_ = nullptr;
+    vk::raii::CommandPool commandPool_ = nullptr;
 
     // ptrs to other engine objects
     Window* window_ = nullptr;
     Logger* logger_ = nullptr;
+
+    int32_t queueIndex_ = -1;
 
     // required extensions for the physical device
     std::vector<const char*> requiredDeviceExtensions_ = { vk::KHRSwapchainExtensionName };

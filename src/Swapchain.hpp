@@ -12,8 +12,11 @@ class Swapchain {
     ~Swapchain() = default;
 
     std::vector<vk::Image> getImages() { return vkSwapchain_.getImages(); }
-
+    vk::Image image(size_t index);
+    vk::ImageView imageView(size_t index);
     vk::SurfaceFormatKHR* surfaceFormat() { return &surfaceFormat_; };
+    vk::Extent2D extent() { return extent_; }
+    vk::raii::SwapchainKHR* swapchain() { return &vkSwapchain_; }
 
     private:
 

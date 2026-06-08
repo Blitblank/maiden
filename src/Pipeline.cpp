@@ -27,7 +27,7 @@ bool Pipeline::createPipeline() {
     const auto shaderPath = std::filesystem::path(MAIDEN_SHADER_DIR) / "triangle.spv";
     ShaderModule shaderModule(device_->logicalDevice(), shaderPath, logger_);
 
-    const std::array shaderStages{
+    const std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages {
         shaderModule.createStageInfo(vk::ShaderStageFlagBits::eVertex, "vertMain"),
         shaderModule.createStageInfo(vk::ShaderStageFlagBits::eFragment, "fragMain"),
     };
@@ -61,7 +61,7 @@ bool Pipeline::createPipeline() {
         1.0f // maxDepth (from top) as a ratio of total image height
     };
     // scissors trim the viewport rectangularly hotdog-wise
-    vk::Extent2D extent = { width, height };
+    vk::Extent2D extent = swapchain_->extent();
     vk::Rect2D scissor {
         vk::Offset2D { 0, 0 },
         extent
@@ -154,5 +154,25 @@ bool Pipeline::createPipeline() {
         return true;
     }
     // TODO: fix validation error on drawParameters that we didnt set
+
+}
+
+void Pipeline::createRenderPass() {
+
+    vk::SubpassDependency2 dependency {
+        .srcSubpass = vk::SubpassExternal,
+        .dstSubpass = 0,
+        .srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        .dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        .srcAccessMask = vk::AccessFlagBits::eNone,
+        .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite,
+    };
+
+    vk::RenderPassCreateInfo2 renderPassInfo = {
+        .dependencyCount = 1,
+        .pDependencies = &dependency
+    };
+
+    // unused
 
 }

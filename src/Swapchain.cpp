@@ -44,21 +44,22 @@ bool Swapchain::createSwapchain() {
     // TODO: [after presentation] need to handle swapchain recreation as a result of window changes
     swapchainCreateInfo.oldSwapchain = nullptr;
 
-    vkSwapchain_ = vk::raii::SwapchainKHR(*logicalDevice, swapchainCreateInfo);
-    images_ = vkSwapchain_.getImages();
-
-    if(vkSwapchain_ == nullptr) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: could not create the Vulkan Swapchain!" << std::endl;
+    try {
+        vkSwapchain_ = vk::raii::SwapchainKHR(*logicalDevice, swapchainCreateInfo);
+    } catch (const vk::SystemError& e) {
+        logger_->log("Swapchain", LogFlag::Error, "Could not create the Vulkan Swapchain!");
         return false;
-    } else {
-        return true;
     }
+
+    images_ = vkSwapchain_.getImages();
+    return true;
+    
 }
 
 vk::SurfaceFormatKHR Swapchain::chooseSurfaceFormat(std::vector<vk::SurfaceFormatKHR> const& availableFormats) {
 
     if(availableFormats.empty()) {
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: no swap formats available!" << std::endl;
+        logger_->log("Swapchain", LogFlag::Error, "No swap formats available!");
         return vk::SurfaceFormatKHR { vk::Format::eUndefined, vk::ColorSpaceKHR::eSrgbNonlinear };
     }
 
@@ -81,7 +82,7 @@ vk::PresentModeKHR Swapchain::choosePresentMode(std::vector<vk::PresentModeKHR> 
 
     if(availablePresentModes.empty()) {
         // fifo is guaranteed to be available so this is unreachable
-        std::cout << "[" << __FUNCTION__ << ": " << __LINE__ << "] Error: no swap formats available!" << std::endl;
+        logger_->log("Device", LogFlag::Error, "No present modes available!");
         return vk::PresentModeKHR::eFifo;
     }
 
@@ -139,4 +140,24 @@ bool Swapchain::createImageViews() {
     }
 
     return true;
+}
+
+vk::ImageView Swapchain::imageView(size_t index) {
+
+    if(index > imageViews_.size()) {
+        logger_->log("Swapchain", LogFlag::Error, "Image view out of index");
+        return nullptr;
+    }
+
+    return *(imageViews_[index]);
+}
+
+vk::Image Swapchain::image(size_t index) {
+
+    if(index > images_.size()) {
+        logger_->log("Swapchain", LogFlag::Error, "Image out of index");
+        return nullptr;
+    }
+
+    return images_[index];
 }

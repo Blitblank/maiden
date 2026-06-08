@@ -6,6 +6,7 @@ Device::Device(vk::raii::Instance* instance, Window* window, Logger* logger): in
     selectPhysicalDevice();
     createSurface();
     createLogicalDevice();
+    createCommandPool();
 
 }
 
@@ -23,9 +24,9 @@ bool Device::selectPhysicalDevice() {
     }
 
     // validate found devices
-    uint32_t maxScore = 0;
+    int32_t maxScore = 0;
     for(vk::raii::PhysicalDevice& physicalDevice : physicalDevices) {
-        uint32_t capabilityScore = evaluatePhysicalDevice(physicalDevice);
+        int32_t capabilityScore = evaluatePhysicalDevice(physicalDevice);
         if(capabilityScore > maxScore) {
             maxScore = capabilityScore;
             physicalDevice_ = physicalDevice;
@@ -36,22 +37,24 @@ bool Device::selectPhysicalDevice() {
         return false;
     } else {
         vk::PhysicalDeviceProperties deviceProperties = physicalDevice_.getProperties();
-        std::string msg = "Physical device selected: " + std::string(deviceProperties.deviceName);
+        std::string deviceName = (deviceProperties.deviceName).data();
+        std::string msg = "Physical device selected: " + deviceName;
         logger_->log("Device", LogFlag::Info, msg);
         return true;
     }
 
 }
 
-uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
+int32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
 
     vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
     vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
-    std::string msg = "Physical device found: " + std::string(deviceProperties.deviceName);
+    std::string deviceName = (deviceProperties.deviceName).data();
+    std::string msg = "Physical device found: " + deviceName;
     logger_->log("Device", LogFlag::Debug, msg);
 
-    uint32_t score = 0;
+    int32_t score = 0;
 
     // TODO: this is very basic and can be improved
 
@@ -59,15 +62,15 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
         score += 2;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is not a discrete device!";
+        std::string msg = "Warning: physical device " + deviceName + " is not a discrete device!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
-    // prefer devices that support vulkan 1.4
-    if(deviceProperties.apiVersion >= vk::ApiVersion14) {
+    // prefer devices that support vulkan 1.3
+    if(deviceProperties.apiVersion >= vk::ApiVersion13) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support Vulkan 1.4!";
+        std::string msg = "Warning: physical device " + deviceName + " does not support >= Vulkan 1.3!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -76,7 +79,7 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(std::ranges::any_of( queueFamilies, []( auto const & qfp ) { return !!( qfp.queueFlags & vk::QueueFlagBits::eGraphics ); } )) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " does not support graphics queue families!";
+        std::string msg = "Warning: physical device " + deviceName + " does not support graphics queue families!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -98,16 +101,18 @@ uint32_t Device::evaluatePhysicalDevice(vk::raii::PhysicalDevice& device) {
     if(missingExtensions == 0) {
         score++;
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing extensions!";
+        std::string msg = "Warning: physical device " + deviceName + " is missing extensions!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
     // prefer devices that support all required features
     auto features = device.template getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
-    if(features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering && features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState) {
-        score++;
+    if(features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering
+        && features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState
+        && features.template get<vk::PhysicalDeviceVulkan13Features>().synchronization2 ) {
+        score += 3; // this is most important
     } else {
-        std::string msg = "Warning: physical device " + std::string(deviceProperties.deviceName) + " is missing features!";
+        std::string msg = "Warning: physical device " + deviceName + " is missing features!";
         logger_->log("Device", LogFlag::Debug, msg);
     }
 
@@ -128,33 +133,35 @@ bool Device::createLogicalDevice() {
 
     // specify queue family requirements
     std::vector<vk::QueueFamilyProperties> queueFamilyProperties = physicalDevice_.getQueueFamilyProperties();
-    int32_t queueIndex = -1;
     for(uint32_t qfpIndex = 0; qfpIndex < queueFamilyProperties.size(); qfpIndex++) {
         if((queueFamilyProperties[qfpIndex].queueFlags & vk::QueueFlagBits::eGraphics) && physicalDevice_.getSurfaceSupportKHR(qfpIndex, *surface_)) {
-            queueIndex = static_cast<int32_t>(qfpIndex);
+            queueIndex_ = static_cast<int32_t>(qfpIndex);
             break;
         }
     }
-    if(queueIndex <= -1) {
+    if(queueIndex_ <= -1) {
         logger_->log("Device", LogFlag::Error, "Could not locate valid graphics queues.");
         return false;
     }
 
     float queuePriority = 0.5f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfo {
-        .queueFamilyIndex = static_cast<uint32_t>(queueIndex),
+        .queueFamilyIndex = static_cast<uint32_t>(queueIndex_),
         .queueCount = 1,
         .pQueuePriorities = &queuePriority
     };
 
     // specify device feature requirements
-    vk::PhysicalDeviceVulkan13Features deviceFeatures = { .dynamicRendering = true };
+    vk::PhysicalDeviceVulkan11Features vulkan11Features = { .shaderDrawParameters = true };
+    vk::PhysicalDeviceVulkan13Features vulkan13Features = { .synchronization2 = true, .dynamicRendering = true };
     vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT deviceStateFeatures = { . extendedDynamicState = true };
-    vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> featureChain = {
+    vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> featureChain = {
         {}, // empty for now
-        deviceFeatures,
+        vulkan11Features,
+        vulkan13Features,
         deviceStateFeatures
     };
+
 
     // create logical device
     vk::DeviceCreateInfo deviceCreateInfo {
@@ -167,7 +174,7 @@ bool Device::createLogicalDevice() {
     logicalDevice_ = vk::raii::Device(physicalDevice_, deviceCreateInfo);
 
     // initialize the graphics queue
-    graphicsQueue_ = vk::raii::Queue(logicalDevice_, queueIndex, 0);
+    graphicsQueue_ = vk::raii::Queue(logicalDevice_, queueIndex_, 0);
 
     if(logicalDevice_ != nullptr) {
         logger_->log("Device", LogFlag::Info, "Created logcal device");
@@ -201,4 +208,26 @@ void Device::createSurface() {
 
 bool Device::getExtent(int32_t* width, int32_t* height) {
     return window_->getExtent(width, height);
+}
+
+bool Device::createCommandPool() {
+
+    if(queueIndex_ < 0) {
+        logger_->log("Device", LogFlag::Error, "Cannot create command pool with invalid queueIndex.");
+        return false;
+    }
+
+    vk::CommandPoolCreateInfo poolInfo {
+        .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = static_cast<uint32_t>(queueIndex_)
+    };
+
+    commandPool_ = vk::raii::CommandPool(logicalDevice_, poolInfo);
+
+    if(commandPool_ == nullptr) {
+        logger_->log("Device", LogFlag::Error, "Could not create command pool.");
+        return false;
+    } else {
+        return true;
+    }
 }
