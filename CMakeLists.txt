@@ -59,6 +59,7 @@ add_library(maiden_core STATIC
     src/ConfigService.cpp
     src/Pipeline.cpp
     src/Swapchain.cpp
+    src/VertexBuffer.cpp
     # include extra source files here
 )
 
