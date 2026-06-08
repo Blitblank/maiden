@@ -338,8 +338,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-                loggerref.log("PPS", LogFlag::Info, output);
-
+        loggerref.log("PPS", Logger::Flag::info, output);
 
         return output;
 
@@ -411,8 +410,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-                loggerref.log("PPS", LogFlag::info, output);
-
+        loggerref.log("PPS", Logger::Flag::info, output);
 
         return output;
 
