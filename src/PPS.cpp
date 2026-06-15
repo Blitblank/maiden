@@ -2,14 +2,38 @@
 #include <string>
 #include <stdio.h>
 #include <sstream>
-
+#include <iostream>
 #ifdef _WIN32
 #include <windows.h> // to get proccess ID for thread count
 #endif
 
 
-PPS::PPS(Logger& logs) : loggerref(logs) 
+PPS::PPS(Logger& logs) : loggerref(logs)
 {
+    std::string test;
+
+
+    test = executecommand("nvidia-smi --query-gpu=name --format=csv,noheader");
+
+
+    isNVIDIA_ = true;
+
+
+    if (test.empty())
+    {
+        isNVIDIA_ = false;
+    }
+   
+    if(isNVIDIA_)
+    {
+    loggerref.log("PPS", LogFlag::Debug, "Performance profilier initialized");
+    }
+
+
+    else
+    {
+    loggerref.log("PPS", LogFlag::Debug, "Performance profilier initialized no NVIDIA GPU found");
+    }
 }
 
 
@@ -31,20 +55,22 @@ void  PPS::getframetime()
 
 void  PPS::getsummary()
 {
-
-    std::string message = "";   
+    updatespecs();
+    std::string message = "";  
+    message =  "CPU usage " + cpuload_  + "%" + " | " + memoryusage_  + " | GPU usage is at " + gpuload_ + " | " + threadcount_ + " |";
+    loggerref.log("PPS", LogFlag::Info,  message );
+}
+void PPS::updatespecs()
+{
     //fps function
     //frame time function
     getthreadcount();
     getmemoryusage();
     getcpuload();
     getgpuload();
-    message = "CPU load " + cpuload + "%" + " | " + memoryusage  + " | " + gpuload + " | " + threadcount + " |";
-    loggerref.log("PPS", LogFlag::Info,  message );
-
 }
 
-void PPS::getcpuload() 
+void PPS::getcpuload()
 {
 
     #ifdef _WIN32
@@ -63,6 +89,12 @@ void PPS::getcpuload()
 
     std::getline(stringstream, us);
 
+   us.pop_back();
+   while(us.back() == ' ') // Removing blankspace
+    {
+        us.pop_back();
+    }
+
     #else
 
     std::string cpucommand = "top -bn1| grep %Cpu";
@@ -77,7 +109,7 @@ void PPS::getcpuload()
     std::string ny = "";
     std::string idle = "";
     std::getline(stringstream, header, ':');
-    std::getline(stringstream, us, 'u'); 
+    std::getline(stringstream, us, 'u');
     std::getline(stringstream, ny, ',');
     std::getline(stringstream, idle, ',');  
 
@@ -87,26 +119,47 @@ void PPS::getcpuload()
 
     loggerref.log("PPS", LogFlag::Info, "CPU usage is at " + us + ".");
 
-    cpuload = us; // storing into private variable to be called later in the summary
+    cpuload_ = us;
 
 }
 
 void PPS::getgpuload()
 {
+    if (isNVIDIA_)
+    {
     std::string gpucommand = "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader";
     std::string result = executecommand(gpucommand);
    loggerref.log("PPS", LogFlag::Info, "GPU usage is at " + result);
-    gpuload = "GPU usage is at " + result;
-    gpuload.pop_back(); // remove 
+    gpuload_ =  result;
+    if (!gpuload_.empty())
+    {
+    gpuload_.pop_back(); // remove
+    }
+    }
+    else
+    {
+        #ifdef _WIN32
+        std::string gpucommand = "TODO ADD HERE";
+        std::string result = executecommand(gpucommand);
+        loggerref.log("PPS", LogFlag::Info, "GPU usage is at " + result);
+        gpuload_ =  result;
+        gpuload_.pop_back(); // remove
+        #else
+        std::string gpucommand = "TODO ADD HERE";
+        std::string result = executecommand(gpucommand);
+        loggerref.log("PPS", LogFlag::Info, "GPU usage is at " + result);
+        gpuload = result;
+        gpuload.pop_back(); // remove
+        #endif
+    }
 
 }
 
 void PPS::getmemoryusage()
 {
-    //TODO currently for windows it only find avaiable memory
     #ifdef _WIN32
     std::string availablememory;
-    std::string result = executecommand("systeminfo |find 'Available Physical Memory'");
+    std::string result = executecommand("systeminfo |find \"Available Physical Memory\"");
     std::stringstream stringstream(result);
     std::string header = "";
     std::string output = "";
@@ -120,7 +173,7 @@ void PPS::getmemoryusage()
 
 
 
-    result = executecommand("systeminfo |find 'Total Physical Memory'");
+    result = executecommand("systeminfo |find \"Total Physical Memory\"");
     std::stringstream stringstream2(result);
     header = "";
     output = "";
@@ -130,16 +183,27 @@ void PPS::getmemoryusage()
 
 
 
+    if (!availablememory.empty())
+    {
+        while (availablememory.front() == ' ')
+        {
+            availablememory.erase(0,1); // Erase only the first character
+        }
+    }
+    if (!output.empty())
+    {
+        while (output.front() == ' ')
+    {
+            output.erase(0,1);
+    }
+    }
+    loggerref.log("PPS", LogFlag::Info, "Available Memory " + availablememory + " out of " + output);
 
 
-    loggerref.log("PPS", LogFlag::Info, "Available Memory " +   availablememory + " out of " + output);
-
-
-
-    memoryusage = "Available Memory " + availablememory + " out of " + output;
-
-
+    memoryusage_ = "Available Memory " + availablememory + " out of " + output;
    
+
+
 
 
     #else
@@ -159,7 +223,7 @@ void PPS::getmemoryusage()
     std::getline(stringstream, header, ':');
     std::getline(stringstream, total, ',');
     std::getline(stringstream, free, ',');
-    std::getline(stringstream, output, ','); 
+    std::getline(stringstream, output, ',');
 
 
       loggerref.log("PPS", LogFlag::Info, "RAM Usage " + output + " out of " + total);
@@ -181,7 +245,7 @@ void PPS::getthreadcount()
 
    #ifdef _WIN32
 
-    std::string threadcommand = "powershell -Command '(Get-Process -Id " + std::to_string(GetCurrentProcessId()) + ").Threads.Count'";
+    std::string threadcommand = "powershell -Command \"(Get-Process -Id " + std::to_string(GetCurrentProcessId()) + ").Threads.Count\"";
 
     std::string result = executecommand(threadcommand);
 
@@ -191,33 +255,35 @@ void PPS::getthreadcount()
     std::string output = "";
 
 
-    std::getline(stringstream, header); 
-    
-    std::getline(stringstream, output); 
+    std::getline(stringstream, header);
+   
+    std::getline(stringstream, output);
 
 
     #else
-    // Need to do make the thread count exlclusive to whatever process ID the program is running in.
 
     std::string threadcommand = "grep Threads: /proc/self/status";
     std::string result = executecommand(threadcommand);
-    
+   
     std::stringstream stringstream(result);
     std::string header = "";
     std::string output = "";
 
     std::getline(stringstream, header, ':'); // Gets " Threads"
     std::getline(stringstream, output); // Gets the acutal thread count
-  
-    output.erase(0,1);
-
+ 
+    while(output.front == ' ')
+    {
+     output.erase(0,1);
+    }
+   
   #endif
 
 
 
-       loggerref.log("PPS", LogFlag::Debug, "Total " + header + " " + output );
+loggerref.log("PPS", LogFlag::Debug, "Thread count " + header + " " + output );
 
-   threadcount = "Total " + header + " " + output;
+   threadcount_ = "Thread count " + header + " " + output;
 
   return;
 
@@ -227,14 +293,14 @@ void PPS::getthreadcount()
 
 std::string PPS::executecommand(std::string command)
 {
-   
+
 
 std::string result = "";
 #ifdef _WIN32
 
-FILE* output = _popen(command.c_str(), "r"); 
+FILE* output = _popen(command.c_str(), "r");
 
-if (!output) // if the command has no output or has returned a error
+if (!output) // if the command has no output
 {
     loggerref.log("PPS", LogFlag::Error, "Was unable to execute the command " + command);
     return result; // which is ""
@@ -244,22 +310,22 @@ if (output) // if the command has a output
 {
     char line[100]; // buffer of 100 charcters read in at a time.
 
-    while (fgets(line, sizeof(line), output) != nullptr) // while the stream of charcters read from the output buffer is not null 
+    while (fgets(line, sizeof(line), output) != nullptr) // while the stream of charcters read from the output buffer is not null
         {  
             result = result + line; // append to the final string that is to be returned.
         }
 
     loggerref.log("PPS", LogFlag::Debug, "Was able to execute the command " + command);
-}   
+    std::cout << "\n";
+}  
   _pclose(output);
 
-  return result;
 
 
 
 #else
 
-FILE* output = popen(command.c_str(), "r"); 
+FILE* output = popen(command.c_str(), "r");
 if (!output) // if the command has no output or has returned a error
 {
     loggerref.log("PPS", LogFlag::Error, "Was unable to execute the command " + command);
@@ -270,19 +336,27 @@ if (output) // if the command has a output
 {
     char line[100]; // buffer of 100 charcters read in at a time.
 
-    while (fgets(line, sizeof(line), output) != nullptr) // while the stream of charcters read from the output buffer is not null 
+    while (fgets(line, sizeof(line), output) != nullptr) // while the stream of charcters read from the output buffer is not null
         {  
             result = result + line; // append to the final string that is to be returned.
         }
 
     loggerref.log("PPS", LogFlag::Debug, "Was able to execute the command " + command);
-}   
+}  
     pclose(output);
-  
+
 
 
 
 #endif
+//Removing the newline characters which windows adds to the end of commands
+    if(!result.empty())
+    {
+        if(result.back() == '\n')
+        {
+            result.pop_back();
+        }
+    }
 
     return result;
 
@@ -295,17 +369,17 @@ std::string PPS::returnhardwareinfo()
     test = executecommand("nvidia-smi --query-gpu=name --format=csv,noheader");
     std::string defaultstring = "Unable to find the correct GPU information.";
 
-    if(test != "") // TODO currently this simply checks if the test command doesnt return anything - there needs to be a more airtight way to check this.
+    if(isNVIDIA_)
     {
 
         #ifdef _WIN32
-   
+
 
         std::string result = "";
         std::string result2 = "";
 
-        std::string gpucommand = "wmic path win32_videocontroller get name"; //https://manpages.debian.org/experimental/rocm-smi/rocm-smi.1.en.html
-        std::string cpucommand = "wmic cpu get name"; // mabye switch this later wmic is outdates on some devices
+        std::string gpucommand = "wmic path win32_videocontroller get name";
+        std::string cpucommand = "wmic cpu get name";
 
         result = executecommand(cpucommand);
 
@@ -313,6 +387,7 @@ std::string PPS::returnhardwareinfo()
 
         std::string header = "";
         std::string output = "";
+
 
         std::getline(stringstream, header);
         std::getline(stringstream, output);
@@ -338,7 +413,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-        loggerref.log("PPS", Logger::Flag::info, output);
+        loggerref.log("PPS", LogFlag::Info, output);
 
         return output;
 
@@ -350,7 +425,7 @@ std::string PPS::returnhardwareinfo()
 
         std::string result = "";
 
-        std::string gpucommand = "nvidia-smi --query-gpu=name --format=csv,noheader";  //https://nvidia.custhelp.com/app/answers/detail/a_id/3751/%7E/useful-nvidia-smi-queries
+        std::string gpucommand = "nvidia-smi --query-gpu=name --format=csv,noheader";
         result = executecommand(gpucommand);
 
         result = result + " | ";
@@ -367,8 +442,8 @@ std::string PPS::returnhardwareinfo()
 
     }
 
-  
-    if(test == "")
+
+ else
 
     {
           #ifdef _WIN32
@@ -376,7 +451,7 @@ std::string PPS::returnhardwareinfo()
          std::string result = "";
          std::string result2 = "";
 
-        std::string gpucommand = "wmic path win32_videocontroller get name"; //https://manpages.debian.org/experimental/rocm-smi/rocm-smi.1.en.html
+        std::string gpucommand = "wmic path win32_videocontroller get name";
         std::string cpucommand = "wmic cpu get name";
 
         result = executecommand(cpucommand);
@@ -410,7 +485,7 @@ std::string PPS::returnhardwareinfo()
 
 
 
-        loggerref.log("PPS", Logger::Flag::info, output);
+        loggerref.log("PPS", LogFlag::Info, output);
 
         return output;
 
@@ -447,5 +522,5 @@ std::string PPS::returnhardwareinfo()
 
     loggerref.log("PPS", LogFlag::Warning, "Unable to find the correct GPU information.");
     return defaultstring;
-    
+   
 }

@@ -2,35 +2,6 @@
 #include <string>
 #include "Logger.hpp"
 
-/*
-struct performanceprofile
-{
-
-int fps = 0;
-
-int frametime = 0;
-
-double cpuload 0.0;
-
-double gpuload 0.0;
-
-};
-
-struct supplementalmetrics 
-{
-
-    double memoryusage;
-
-    int threadcount;
-
-    std::string hardwareinfo;
-
-
-};
-
-*/
-
-
 class PPS 
 {
 
@@ -56,24 +27,21 @@ std::string  returnhardwareinfo();
 
 std::string  executecommand(std::string command);
 
+void updatespecs();
 
 
 private:
 
-/*
-performanceprofile performance;
-
-supplementalmetrics metrics;
-*/
 
 Logger& loggerref;
 
-// new private variable to store information for the summary.
-std::string cpuload;
+std::string cpuload_;
 
-std::string memoryusage;
+std::string memoryusage_;
 
-std::string gpuload;
+std::string gpuload_;
 
-std::string threadcount;
+std::string threadcount_;
+
+bool isNVIDIA_;
 };

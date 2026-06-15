@@ -1,6 +1,5 @@
 
 #include "App.hpp"
-
 #include <thread>
 #include <chrono>
 #include <SDL3/SDL_events.h>
@@ -9,12 +8,30 @@ App::App() {
     // smart pointers might be a good idea
     // since app will be the top level owner we can use unique ptrs for almost everything
 
+
+    #ifdef _WIN32
     ConfigService config;
+   //config.loadFromFile("config/maiden.cfg");
+    config.loadFromFile(""); 
+    engineLogger_ = new Logger(&config, "Engine");
+
+    window_ = new Window(engineLogger_);
+    engine_ = new Engine(window_, engineLogger_);
+
+
+    #else
+
+     ConfigService config;
+   //config.loadFromFile("config/maiden.cfg");
     config.loadFromFile("config/maiden.cfg");
     engineLogger_ = new Logger(&config, "Engine");
 
     window_ = new Window(engineLogger_);
     engine_ = new Engine(window_, engineLogger_);
+
+
+    #endif 
+
 
 
 }

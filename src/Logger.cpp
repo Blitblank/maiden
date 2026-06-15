@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
             auto loggerConfigurationRaw = config->getLoggerConfig(loggerId);
             if(!loggerConfigurationRaw) {
-                std::cout << "Failed to get logger configuration fom config service" << std::endl;
+                std::cout << "Failed to get logger configuration from config service" << std::endl;
                 return;
             }
             LoggerConfig loggerConfiguration = loggerConfigurationRaw.value();
@@ -77,6 +77,13 @@ namespace fs = std::filesystem;
 
         {
 
+            const auto now = std::chrono::system_clock::now();
+            const std::time_t t_c = std::chrono::system_clock::to_time_t(now);
+
+            std::string finaltime = std::ctime(&t_c);
+
+            finaltime.pop_back(); // removing the newline
+
             // check if flag is in the list of active flags
             bool culled = true;
             for(LogFlag& testFlag : activeFlags) {
@@ -91,7 +98,7 @@ namespace fs = std::filesystem;
 
             if (time)
                 {
-                    finalmessage = finalmessage + "[" +  "Not Implemented" + "] "; 
+                    finalmessage = finalmessage + "[" +  finaltime + "] "; 
                 }
 
             std::string componentTrace = "[" + id + ": " + component + "] ";
