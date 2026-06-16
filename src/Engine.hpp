@@ -45,6 +45,8 @@ private:
     // helper for syncronization instantiation
     bool createSyncObjects();
 
+    bool createUniformBuffers();
+
     // helper for swapping images
     void transitionImageLayout(uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags2 srcAccessMask,
         vk::AccessFlags2 destAccessMask, vk::PipelineStageFlags2 srcStageMask, vk::PipelineStageFlags2 destStageMask);
@@ -54,7 +56,7 @@ private:
                                                           vk::DebugUtilsMessageTypeFlagsEXT type,
                                                           const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                           void* pUserData);
-
+    
     Logger* logger_ = nullptr;
     Window* window_ = nullptr;
     Device* device_ = nullptr;
@@ -71,11 +73,19 @@ private:
     std::vector<vk::raii::Semaphore> renderCompleteSemaphores_;
     std::vector<vk::raii::Fence> drawFences_;
 
+    // buffer objects
+    // TODO: move elsewhere, integrate with the mesh class
+    vk::raii::Buffer indexBuffer = nullptr;
+    vk::raii::DeviceMemory indexBufferMemory = nullptr;
+    std::vector<vk::raii::Buffer> uniformBuffers;
+    std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
+    std::vector<void*> uniformBuffersMapped; // virtual memory where we can write the uniform data to without disrupting the gpu memory transfer
+
     // members for control over validation layers
     static constexpr bool enableValidationLayers = true; // TODO: only true in debug mode
     const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
-    const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t frameIndex_ = 0;
 
 };

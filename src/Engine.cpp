@@ -382,3 +382,18 @@ bool Engine::createSyncObjects() {
 
     return true;
 }
+
+bool Engine::createUniformBuffers() {
+
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vk::DeviceSize bufferSize = sizeof(UniformBufferObject);
+        auto [buffer, bufferMem] = createBuffer(
+            bufferSize, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+        );
+        uniformBuffers_.emplaceBack(std::move(buffer));
+        uniformBuffersMemory_.emplaceBack(std::move(bufferMem));
+        uniformBuffersMapped_.emplaceBack(std::move(uniformBuffersMemory.back().mapMemory(0, bufferSize)));
+    }
+
+    return true;
+}

@@ -36,6 +36,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(libconfig)
 
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/icaven/glm.git
+    GIT_TAG        master
+)
+FetchContent_MakeAvailable(glm)
+
 if(TARGET libconfig++)
     set(MAIDEN_LIBCONFIGXX_TARGET libconfig++)
 elseif(TARGET config++)

@@ -176,3 +176,23 @@ void Pipeline::createRenderPass() {
     // unused
 
 }
+
+void Pipeline::createDescriptorSetLayout() {
+
+    vk::DescriptorSetLayoutBinding uboLayoutBinding {
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eVertex
+    };
+    vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutInfo {
+        .bindingCount = 1,
+        .pBindings = &uboLayoutBinding
+    };
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo {
+        .setLayoutCount = 1,
+        .pSetLayouts = &*descriptorSetLayout_,
+        .pushConstantRangeCount = 0
+    };
+
+}
